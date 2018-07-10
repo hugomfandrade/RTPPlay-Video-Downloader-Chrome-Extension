@@ -11,7 +11,7 @@ A Google Chrome Extension used for downloading videos of the RTPPlay platform ([
 ## Demo
 Once you select and open an URL of a RTPLay video, just click the RTPlay Video Downloader extension icon to the right of the address bar and the video will be downloaded.
 
-                               |                 
-:-----------------------------:|:-----------------------------:
-![](demo/rtpplay-demo-1.png)   |  ![](demo/rtpplay-demo-2.png)
+|                               |                               |
+|:-----------------------------:|:-----------------------------:|
+|![](demo/rtpplay-demo-1.png)   |  ![](demo/rtpplay-demo-2.png) |
 
