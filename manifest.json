@@ -1,0 +1,24 @@
+{
+    "name": "RTPPlay Downloader",
+    "version": "1.0",
+    "description": "Download RTPPlay videos",
+    "permissions": ["activeTab", "downloads"],
+    "background": {
+        "scripts": ["background.js"]
+    },
+    "icons": {
+        "16": "images/rtpplay_downloader_16.png",
+        "32": "images/rtpplay_downloader_32.png",
+        "48": "images/rtpplay_downloader_48.png",
+        "128": "images/rtpplay_downloader_128.png"
+    },
+    "browser_action": {
+        "default_icon":  {
+            "16": "images/rtpplay_downloader_16.png",
+            "32": "images/rtpplay_downloader_32.png",
+            "48": "images/rtpplay_downloader_48.png",
+            "128": "images/rtpplay_downloader_128.png"
+        }
+    },
+    "manifest_version": 2
+}
