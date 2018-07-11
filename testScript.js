@@ -29,24 +29,36 @@ for (var i = 0 ; i < scriptTags.length ; i++) {
                         rtpPlayerSubString.indexOf('file: \"') + 'file: \"'.length, 
                         rtpPlayerSubString.substr(rtpPlayerSubString.indexOf('file: \"') + 'file: \"'.length).indexOf('\",')
                     );
+                    
+                    if (link.indexOf('.mp4') >= 0) { // is video file
 
-                    var linkSubString = 
-                        link.substring(
-                            0, 
-                            link.indexOf('index')
-                        ) +
-                        link.substring(
-                            link.indexOf('streams=') + 'streams='.length, 
-                            link.indexOf('.mp4') + '.mp4'.length
-                        )
-                    ;
+                        var linkSubString = 
+                            link.substring(
+                                0, 
+                                link.indexOf('index')
+                            ) +
+                            link.substring(
+                                link.indexOf('streams=') + 'streams='.length, 
+                                link.indexOf('.mp4') + '.mp4'.length
+                            )
+                        ;
 
-                    //console.log('linkSubString = ' + linkSubString);
-                    chrome.runtime.sendMessage({linkSubString: linkSubString}, function(response) {
-                        //console.log('post::linkSubString = ' + linkSubString);
-                    });
+                        console.log('linkSubString (video) = ' + linkSubString);
+                        chrome.runtime.sendMessage({linkSubString: linkSubString}, function(response) {
+                            //console.log('post::linkSubString (video) = ' + linkSubString);
+                        });
 
-                    isFound = true;
+                        isFound = true;
+                    }
+                    else if (link.indexOf('.mp3') >= 0) { // is audio file
+
+                        console.log('linkSubString (audio) = ' + link);
+                        chrome.runtime.sendMessage({linkSubString: link}, function(response) {
+                            //console.log('post::linkSubString (audio) = ' + linkSubString);
+                        });
+
+                        isFound = true;
+                    }
                 }
             }
         }
@@ -54,5 +66,5 @@ for (var i = 0 ; i < scriptTags.length ; i++) {
 }
    
 if (isFound == false) {
-    alert('RTPPlayer file not found');
+    alert('No RTPPlayer file not found');
 }
