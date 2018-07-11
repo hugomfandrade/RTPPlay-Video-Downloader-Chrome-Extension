@@ -41,8 +41,9 @@ for (var i = 0 ; i < scriptTags.length ; i++) {
                         )
                     ;
 
+                    //console.log('linkSubString = ' + linkSubString);
                     chrome.runtime.sendMessage({linkSubString: linkSubString}, function(response) {
-                        //console.log('linkSubString = ' + linkSubString);
+                        //console.log('post::linkSubString = ' + linkSubString);
                     });
 
                     isFound = true;
