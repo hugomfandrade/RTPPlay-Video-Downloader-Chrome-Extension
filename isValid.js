@@ -4,7 +4,6 @@
 
 'use strict';
 
-
 var scriptTags = document.getElementsByTagName('script');
 
 var isFound = false;
@@ -43,19 +42,9 @@ for (var i = 0 ; i < scriptTags.length ; i++) {
                             )
                         ;
 
-                        console.log('linkSubString (video) = ' + linkSubString);
-                        chrome.runtime.sendMessage({linkSubString: linkSubString}, function(response) {
-                            //console.log('post::linkSubString (video) = ' + linkSubString);
-                        });
-
                         isFound = true;
                     }
                     else if (link.indexOf('.mp3') >= 0) { // is audio file
-
-                        console.log('linkSubString (audio) = ' + link);
-                        chrome.runtime.sendMessage({linkSubString: link}, function(response) {
-                            //console.log('post::linkSubString (audio) = ' + linkSubString);
-                        });
 
                         isFound = true;
                     }
@@ -64,7 +53,5 @@ for (var i = 0 ; i < scriptTags.length ; i++) {
         }
     }
 }
-   
-if (isFound == false) {
-    alert('No RTPPlayer file not found');
-}
+
+chrome.runtime.sendMessage({MessageType: 'isValid', isValid: isFound}, function(response) {});

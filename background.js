@@ -1,18 +1,76 @@
+var activeTabID;
+var activeWindowID;
+
 chrome.runtime.onInstalled.addListener(function() {
-    
-    /*chrome.browserAction.onClicked.addListener(function(tab) { 
-        chrome.tabs.executeScript(null, {file: "testScript.js"});
-    });/**/
+
+    chrome.browserAction.disable(null, function() { 
+        chrome.tabs.executeScript(null, {file: "isValid.js"});
+    });
+});
+
+chrome.management.onEnabled.addListener(function(info) {
+    //console.log(JSON.stringify(info));
+
+    chrome.browserAction.disable(null, function() { 
+        chrome.tabs.executeScript(null, {file: "isValid.js"});
+    });
 });
     
 chrome.browserAction.onClicked.addListener(function(tab) { 
-    chrome.tabs.executeScript(null, {file: "testScript.js"});
+    chrome.tabs.executeScript(tab.id, {file: "fetchLinks.js"});
 });
 
-chrome.runtime.onMessage.addListener(
-  function(request, sender, sendResponse) {
-      
-      chrome.downloads.download({url: request.linkSubString},function(id) {
-          console.log('post-download');
-      });
-  });
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    if (request.MessageType === 'isValid') {
+        if (sender.tab.id == activeTabID) {
+            if (request.isValid === true) {
+                chrome.browserAction.enable(activeTabID, function() {  });
+            }
+            else {
+                chrome.browserAction.disable(activeTabID, function() { });
+            }
+        }
+    }
+    else {
+        chrome.downloads.download({url: request.linkSubString},function(id) {
+            //console.log('post-download');
+        });
+    }
+});
+
+chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs) {
+    activeTabID = tabs[0].id;
+    
+    chrome.tabs.onCreated.addListener(function(tab) {
+        
+        if (tab.id === activeTabID) {
+            chrome.browserAction.disable(activeTabID, function() { 
+                chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
+            });
+        }
+    });
+    chrome.tabs.onActivated.addListener(function(activeInfo) {
+        
+        var tabId = activeInfo.tabId;
+        var windowId = activeInfo.windowId;
+        activeTabID = tabId;
+        activeWindowID = windowId;
+
+        chrome.browserAction.disable(activeTabID, function() { 
+            chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
+        });
+    });
+
+    chrome.tabs.onUpdated.addListener(function (tabId, info, tab) {
+        if (info.status === 'complete') {
+            chrome.tabs.executeScript(tabId, {file: "isValid.js"});
+        }
+        else if (info.status === 'loading') {
+            chrome.tabs.executeScript(tabId, {file: "isValid.js"});
+        }
+        else {
+            chrome.browserAction.disable(tabId, function() { });
+        }
+    });
+    
+});
