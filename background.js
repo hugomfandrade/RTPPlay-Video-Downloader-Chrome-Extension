@@ -22,7 +22,7 @@ chrome.browserAction.onClicked.addListener(function(tab) {
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     if (request.MessageType === 'isValid') {
-        if (sender.tab.id == activeTabID) {
+        if (sender.tab.id === activeTabID) {
             if (request.isValid === true) {
                 chrome.browserAction.enable(activeTabID, function() {  });
             }
@@ -39,7 +39,9 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 });
 
 chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs) {
-    activeTabID = tabs[0].id;
+    if (tabs[0].active) {
+        activeTabID = tabs[0].id;
+    }
     
     chrome.tabs.onCreated.addListener(function(tab) {
         
@@ -51,25 +53,28 @@ chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs) {
     });
     chrome.tabs.onActivated.addListener(function(activeInfo) {
         
-        var tabId = activeInfo.tabId;
-        var windowId = activeInfo.windowId;
-        activeTabID = tabId;
-        activeWindowID = windowId;
+        chrome.tabs.get(activeInfo.tabId, function(tab) { 
+            if (tab.active) {
+                activeTabID = tab.id;
 
-        chrome.browserAction.disable(activeTabID, function() { 
-            chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
+                chrome.browserAction.disable(activeTabID, function() { 
+                    chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
+                });
+            }
         });
     });
 
     chrome.tabs.onUpdated.addListener(function (tabId, info, tab) {
-        if (info.status === 'complete') {
-            chrome.tabs.executeScript(tabId, {file: "isValid.js"});
+        if (tab.active) {
+            activeTabID = tab.id;
         }
-        else if (info.status === 'loading') {
-            chrome.tabs.executeScript(tabId, {file: "isValid.js"});
-        }
-        else {
-            chrome.browserAction.disable(tabId, function() { });
+        if (tabId === activeTabID) {
+            if (info.status === 'complete') {
+                chrome.tabs.executeScript(tabId, {file: "isValid.js"});
+            }
+            else if (info.status === 'loading') {
+                chrome.tabs.executeScript(tabId, {file: "isValid.js"});
+            }
         }
     });
     
