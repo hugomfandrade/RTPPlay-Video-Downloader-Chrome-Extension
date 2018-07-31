@@ -32,7 +32,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         }
     }
     else {
-        chrome.downloads.download({url: request.linkSubString},function(id) {
+        chrome.downloads.download({url: request.linkSubString, filename: request.filename},function(id) {
             //console.log('post-download');
         });
     }

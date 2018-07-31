@@ -4,6 +4,22 @@
 
 'use strict';
 
+/*String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.split(search).join(replacement);
+};/**/
+String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.replace(new RegExp(search, 'g'), replacement);
+};
+
+function getTabTitle() {
+    return document.getElementsByTagName('title')[0].text
+        .replaceAll('-',' ')
+        .replace(/\s{2,}/g,' ')
+        .replaceAll(' ', '.')
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, "")
+}
 
 var scriptTags = document.getElementsByTagName('script');
 
@@ -42,16 +58,23 @@ for (var i = 0 ; i < scriptTags.length ; i++) {
                                 link.indexOf('.mp4') + '.mp4'.length
                             )
                         ;
-
+                        
+                        var filename = getTabTitle() + ".mp4";
+                        
+                        //console.log('filename = ' + filename);
                         //console.log('linkSubString (video) = ' + linkSubString);
-                        chrome.runtime.sendMessage({linkSubString: linkSubString}, function(response) { });
+                        
+                        chrome.runtime.sendMessage({linkSubString: linkSubString, filename: filename}, function(response) { });
 
                         isFound = true;
                     }
                     else if (link.indexOf('.mp3') >= 0) { // is audio file
-
-                        //console.log('linkSubString (audio) = ' + link);
-                        chrome.runtime.sendMessage({linkSubString: link}, function(response) { });
+                        
+                        var filename = getTabTitle() + ".mp3";
+                        
+                        //console.log('filename = ' + filename);
+                        //console.log('linkSubString (audio) = ' + linkSubString);
+                        chrome.runtime.sendMessage({linkSubString: link, filename: filename}, function(response) { });
 
                         isFound = true;
                     }
