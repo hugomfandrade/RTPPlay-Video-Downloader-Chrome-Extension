@@ -1,7 +1,32 @@
 var activeTabID;
 var activeWindowID;
 
+chrome.contextMenus.removeAll();
+chrome.contextMenus.create({
+      title: "first",
+      contexts: ["browser_action"],
+      onclick: function() {
+        alert('first');
+      }
+});
+chrome.contextMenus.create({
+      title: "second",
+      contexts: ["browser_action"],
+      onclick: function() {
+        alert('second');
+      }
+});
+
 chrome.runtime.onInstalled.addListener(function() {
+    
+    chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
+        chrome.declarativeContent.onPageChanged.addRules([{
+            conditions: [new chrome.declarativeContent.PageStateMatcher({
+                pageUrl: {hostEquals: 'developer.chrome.com'},
+            })],
+            actions: [new chrome.declarativeContent.ShowPageAction()]
+        }]);
+    });
 
     chrome.browserAction.disable(null, function() { 
         chrome.tabs.executeScript(null, {file: "isValid.js"});
