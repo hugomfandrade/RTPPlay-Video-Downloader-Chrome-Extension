@@ -3,17 +3,10 @@ var activeWindowID;
 
 chrome.contextMenus.removeAll();
 chrome.contextMenus.create({
-      title: "first",
+      title: "Download all",
       contexts: ["browser_action"],
       onclick: function() {
-        alert('first');
-      }
-});
-chrome.contextMenus.create({
-      title: "second",
-      contexts: ["browser_action"],
-      onclick: function() {
-        alert('second');
+          chrome.tabs.executeScript(null, {file: "fetchAllLinks.js"});
       }
 });
 
