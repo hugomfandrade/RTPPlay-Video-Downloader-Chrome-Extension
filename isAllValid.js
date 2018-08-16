@@ -4,25 +4,12 @@
 
 'use strict';
 
-String.prototype.replaceAll = function(search, replacement) {
-    var target = this;
-    return target.replace(new RegExp(search, 'g'), replacement);
-};
-
 String.prototype.indexOfEx = function(text) {
     var target = this;
     return target.indexOf(text) + text.length;
 };
 
-function getTabTitle(d) {
-    return d.getElementsByTagName('title')[0].text
-        .replaceAll('-',' ')
-        .replace(/\s{2,}/g,' ')
-        .replaceAll(' ', '.')
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, "");
-}
-
-function isValid(scriptTags) {
+function isValid(scriptTags, callback) {
     
     if (scriptTags == undefined) return false;
     
@@ -52,14 +39,8 @@ function isValidAndGetType(scriptTags, callback) {
     return callback(false);
 }
 
-function download(link, filename) {
-    console.log('download -> ' + link + " = " + filename);
-    chrome.runtime.sendMessage({linkSubString: link, filename: filename}, function(response) { });
-}
-
-function downloadRTPPlay(d, scriptText) {
+function isValidRTPPlay(scriptText) {
     
-
     var rtpPlayerSubString = scriptText.substring(scriptText.indexOfEx('RTPPlayer({') , scriptText.lastIndexOf('})'));
 
     if (rtpPlayerSubString.indexOf('file: \"') >= 0) {
@@ -70,25 +51,14 @@ function downloadRTPPlay(d, scriptText) {
 
         if (link.indexOf('.mp4') >= 0) { // is video file
 
-            link = 
-                link.substring(0, link.indexOf('index')) +
-                link.substring(link.indexOfEx('streams='), link.indexOfEx('.mp4'));
-
-            var filename = getTabTitle(d) + ".mp4";
-
-            download(link, filename);
-
             return true;
         }
         else if (link.indexOf('.mp3') >= 0) { // is audio file
 
-            var filename = getTabTitle(d) + ".mp3";
-
-            download(link, filename);
-
             return true;
         }
     }
+    
     return false;
 }
 
@@ -113,7 +83,7 @@ function httpGet(url, callback) {
 var episodeItems = document.getElementsByClassName('episode-item');
 
 if (episodeItems.length == 0) {
-    alert('No RTPPlayer file found');
+    chrome.runtime.sendMessage({MessageType: 'isAllValid', isValid: false}, function(response) {});
 }
 else {
     var isFound = false;
@@ -123,8 +93,7 @@ else {
     for (var i = 0 ; i < episodeItems.length ; i++) {
 
         httpGet(window.location.origin + episodeItems[i].getAttribute("href"), function(d) {
-
-
+            
             var scriptTags = d.getElementsByTagName('script');
 
             for (var i = 0 ; i < scriptTags.length ; i++) {
@@ -132,17 +101,18 @@ else {
                 isValidAndGetType(scriptTags[i], function(isOk, type) {
 
                     if (isOk) {
-
+            
                         if (type == 'RTPPlay') {
-                            isFound = downloadRTPPlay(d, scriptTags[i].text) || isFound;
+                            isFound = isValidRTPPlay(scriptTags[i].text);
                         }
                     }
                 });
-            }
+            }  
             numberOfItemsConcluded = numberOfItemsConcluded + 1;
-            if (numberOfItemsConcluded == numberOfItemsConcluded && isFound == false) {
-                alert('No RTPPlayer file found');
-            }
+            if (numberOfItemsConcluded == numberOfItemsConcluded) {
+                chrome.runtime.sendMessage({MessageType: 'isAllValid', isValid: isFound}, function(response) {});
+            }          
         });
     }
+    
 }

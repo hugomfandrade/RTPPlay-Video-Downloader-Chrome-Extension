@@ -3,11 +3,12 @@ var activeWindowID;
 
 chrome.contextMenus.removeAll();
 chrome.contextMenus.create({
-      title: "Download all",
-      contexts: ["browser_action"],
-      onclick: function() {
-          chrome.tabs.executeScript(null, {file: "fetchAllLinks.js"});
-      }
+    id: "disable_context_menu_item",
+    title: "Download all",
+    contexts: ["browser_action"],
+    onclick: function() {
+        chrome.tabs.executeScript(null, {file: "fetchAllLinks.js"});
+    }
 });
 
 chrome.runtime.onInstalled.addListener(function() {
@@ -24,6 +25,9 @@ chrome.runtime.onInstalled.addListener(function() {
     chrome.browserAction.disable(null, function() { 
         chrome.tabs.executeScript(null, {file: "isValid.js"});
     });
+    chrome.contextMenus.update("disable_context_menu_item", {enabled: false}, function() {
+        chrome.tabs.executeScript(null, {file: "isAllValid.js"});
+    });
 });
 
 chrome.management.onEnabled.addListener(function(info) {
@@ -31,6 +35,9 @@ chrome.management.onEnabled.addListener(function(info) {
 
     chrome.browserAction.disable(null, function() { 
         chrome.tabs.executeScript(null, {file: "isValid.js"});
+    });
+    chrome.contextMenus.update("disable_context_menu_item", {enabled: false}, function() {
+        chrome.tabs.executeScript(null, {file: "isAllValid.js"});
     });
 });
     
@@ -49,9 +56,20 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
             }
         }
     }
+    else if (request.MessageType === 'isAllValid') {
+        if (sender.tab.id === activeTabID) {
+            if (request.isValid === true) {
+                chrome.contextMenus.update("disable_context_menu_item", {enabled: true});
+            }
+            else {
+                chrome.contextMenus.update("disable_context_menu_item", {enabled: false});
+            }
+        }
+    }
     else {
+        //console.log('download -> ' + request.linkSubString + " = " + request.filename);
         chrome.downloads.download({url: request.linkSubString, filename: request.filename},function(id) {
-            //console.log('post-download');
+            //console.log('post-download -> ' + request.linkSubString + " = " + request.filename);
         });
     }
 });
@@ -67,9 +85,13 @@ chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs) {
             chrome.browserAction.disable(activeTabID, function() { 
                 chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
             });
+            chrome.contextMenus.update("disable_context_menu_item", {enabled: false}, function() {
+                chrome.tabs.executeScript(activeTabID, {file: "isAllValid.js"});
+            });
         }
     });
     chrome.tabs.onActivated.addListener(function(activeInfo) {
+        //chrome.tabs.executeScript(null, {file: "debug.js"});
         
         chrome.tabs.get(activeInfo.tabId, function(tab) { 
             if (tab.active) {
@@ -77,6 +99,9 @@ chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs) {
 
                 chrome.browserAction.disable(activeTabID, function() { 
                     chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
+                });
+                chrome.contextMenus.update("disable_context_menu_item", {enabled: false}, function() {
+                    chrome.tabs.executeScript(activeTabID, {file: "isAllValid.js"});
                 });
             }
         });
@@ -89,9 +114,11 @@ chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs) {
         if (tabId === activeTabID) {
             if (info.status === 'complete') {
                 chrome.tabs.executeScript(tabId, {file: "isValid.js"});
+                chrome.tabs.executeScript(tabId, {file: "isAllValid.js"});
             }
             else if (info.status === 'loading') {
                 chrome.tabs.executeScript(tabId, {file: "isValid.js"});
+                chrome.tabs.executeScript(tabId, {file: "isAllValid.js"});
             }
         }
     });

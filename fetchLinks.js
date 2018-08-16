@@ -105,7 +105,7 @@ for (var i = 0 ; i < scriptTags.length ; i++) {
         if (isOk) {
             
             if (type == 'RTPPlay') {
-                isFound = downloadRTPPlay(scriptTags[i].text);
+                isFound = downloadRTPPlay(scriptTags[i].text) || isFound;
             }
         }
     });
