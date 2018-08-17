@@ -47,8 +47,8 @@ function downloadRTPPlayFromDocument(doc, filename) {
     }
 }
 
-function getTabTitle(d) {
-    return d.getElementsByTagName('title')[0].text
+function getTabTitle(doc) {
+    return doc.getElementsByTagName('title')[0].text
         .replaceAll('-',' ')
         .replaceAll(':',' ')
         .replace(/\s{2,}/g,' ')
@@ -56,9 +56,9 @@ function getTabTitle(d) {
         .normalize('NFD').replace(/[\u0300-\u036f]/g, "");
 }
 
-function hasPagination() {
+function hasPagination(doc) {
 
-    var mainElems = document.getElementsByClassName("bg-dark-gray");
+    var mainElems = doc.getElementsByClassName("bg-dark-gray");
     
     for (var i = 0 ; i < mainElems.length ; i++) {
         
@@ -90,11 +90,11 @@ function hasPagination() {
     return false;
 }
 
-function getRTPPlayPaginationLinks() {
+function getRTPPlayPaginationLinks(doc) {
     
     var rtpPlayLinks = [];
 
-    var mainElems = document.getElementsByClassName("bg-dark-gray");
+    var mainElems = doc.getElementsByClassName("bg-dark-gray");
     
     for (var i = 0 ; i < mainElems.length ; i++) {
         
@@ -161,6 +161,32 @@ function getRTPPlayLinkFromScript(scriptText) {
     return undefined;
 }
 
+function getRTPPlayFileLinks(doc) {
+    
+    var rtpPlayLinks = [];
+    
+    if (isValid(doc) && getType() === 'RTPPlay') {
+        
+        var scriptTags = doc.getElementsByTagName('script');
+        
+        if (scriptTags === undefined) {
+            return false;
+        }
+        
+        for (var i = 0 ; i < scriptTags.length ; i++) {
+            
+            var link = getRTPPlayLinkFromScript(scriptTags[i].text);
+    
+            if (link !== undefined) {
+                rtpPlayLinks.push(link);
+            }
+        }
+        
+    }
+    
+    return rtpPlayLinks;
+}
+
 function isValidRTPPlayScript(scriptText) {
     var link = getRTPPlayLinkFromScript(scriptText);
     
@@ -172,7 +198,7 @@ function isValidRTPPlayScript(scriptText) {
     }
 }
 
-function isValid() {
+function isValid(doc) {
     
     var type = getType();
     
@@ -183,7 +209,7 @@ function isValid() {
             return false;
         }
         
-        var scriptTags = document.getElementsByTagName('script');
+        var scriptTags = doc.getElementsByTagName('script');
         
         if (scriptTags === undefined) {
             return false;
@@ -211,33 +237,7 @@ function getType() {
     return "unknown";
 }
 
-function getRTPPlayFileLinks(d) {
-    
-    var rtpPlayLinks = [];
-    
-    if (isValid() && getType() === 'RTPPlay') {
-        
-        var scriptTags = d.getElementsByTagName('script');
-        
-        if (scriptTags === undefined) {
-            return false;
-        }
-        
-        for (var i = 0 ; i < scriptTags.length ; i++) {
-            
-            var link = getRTPPlayLinkFromScript(scriptTags[i].text);
-    
-            if (link !== undefined) {
-                rtpPlayLinks.push(link);
-            }
-        }
-        
-    }
-    
-    return rtpPlayLinks;
-}
-
-function getDocumentInUrl(url, part, callback) {
+function getDocumentPartInUrl(url, part, callback) {
     var xmlhttp;
     if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari
         xmlhttp = new XMLHttpRequest();
@@ -255,7 +255,7 @@ function getDocumentInUrl(url, part, callback) {
     xmlhttp.send();
 }
 
-var isOk = isValid();
+var isOk = isValid(document);
     
 if (isOk === false) {
     alert('No file found');
@@ -265,8 +265,8 @@ else {
 
     if (type === 'RTPPlay') {
         
-        if (hasPagination()) {
-            var rtpPlayPaginationLinks = getRTPPlayPaginationLinks();
+        if (hasPagination(document)) {
+            var rtpPlayPaginationLinks = getRTPPlayPaginationLinks(document);
             
             if (rtpPlayPaginationLinks.length === 0) {
                 alert('No Pagination files found');
@@ -275,7 +275,7 @@ else {
 
                 for (var i = 0 ; i < rtpPlayPaginationLinks.length ; i++) {
                     
-                    getDocumentInUrl(rtpPlayPaginationLinks[i].link, rtpPlayPaginationLinks[i].part, function(part, doc) {
+                    getDocumentPartInUrl(rtpPlayPaginationLinks[i].link, rtpPlayPaginationLinks[i].part, function(part, doc) {
 
                         downloadRTPPlayFromDocument(doc, getTabTitle(document) + "." + part);
                     });
@@ -285,5 +285,8 @@ else {
         else {
             downloadRTPPlayFromDocument(document, getTabTitle(document));
         }
+    }
+    else {
+        alert('No valid file found'); 
     }
 }

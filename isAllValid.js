@@ -9,39 +9,14 @@ String.prototype.indexOfEx = function(text) {
     return target.indexOf(text) + text.length;
 };
 
-function isValid(scriptTags, callback) {
-    
-    if (scriptTags == undefined) return false;
-    
-    var text = scriptTags.text;
-    
-    if (text.length == 0 || text.indexOf('RTPPlayer') < 0) return false;
-    
-    return true;
-}
-
-function isValidAndGetType(scriptTags, callback) {
-    
-    if (scriptTags == undefined) {
-        return callback(false);
+function getRTPPlayLinkFromScript(scriptText) {
+    if (scriptText === undefined || 
+        scriptText.length === 0 || 
+        scriptText.indexOf('RTPPlayer({') < 0) {
+        return undefined;
     }
     
-    var text = scriptTags.text;
-    
-    if (text.length == 0) {
-        return callback(false);
-    }
-    
-    if (text.indexOf('RTPPlayer') >= 0) {
-        return callback(true, 'RTPPlay');
-    }
-
-    return callback(false);
-}
-
-function isValidRTPPlay(scriptText) {
-    
-    var rtpPlayerSubString = scriptText.substring(scriptText.indexOfEx('RTPPlayer({') , scriptText.lastIndexOf('})'));
+    var rtpPlayerSubString = scriptText.substring(scriptText.indexOfEx('RTPPlayer({'), scriptText.lastIndexOf('})'));
 
     if (rtpPlayerSubString.indexOf('file: \"') >= 0) {
 
@@ -50,19 +25,72 @@ function isValidRTPPlay(scriptText) {
             rtpPlayerSubString.substr(rtpPlayerSubString.indexOfEx('file: \"')).indexOf('\",'));
 
         if (link.indexOf('.mp4') >= 0) { // is video file
+            
+            link = 
+                link.substring(0, link.indexOf('index')) +
+                link.substring(link.indexOfEx('streams='), link.indexOfEx('.mp4'));
 
-            return true;
+            return link;
         }
         else if (link.indexOf('.mp3') >= 0) { // is audio file
 
-            return true;
+            return link;
         }
     }
+    return undefined;
+}
+
+function isValidRTPPlayScript(scriptText) {
+    var link = getRTPPlayLinkFromScript(scriptText);
     
+    if (link === undefined) {
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+
+function getType() {
+    
+    if (window.location.href.indexOf("www.rtp.pt/play") >= 0) {
+        return 'RTPPlay';
+    }
+
+    return "unknown";
+}
+
+function isValid(doc) {
+    
+    var type = getType();
+    
+    if (type === 'RTPPlay') {
+        // might be an RTPPlay file
+    
+        if (doc === undefined) {
+            return false;
+        }
+        
+        var scriptTags = doc.getElementsByTagName('script');
+        
+        if (scriptTags === undefined) {
+            return false;
+        }
+        
+        for (var i = 0 ; i < scriptTags.length ; i++) {
+            
+            var text = scriptTags[i].text;
+
+            if (isValidRTPPlayScript(text) === true) {
+                return true;
+            }
+        }
+    }
+
     return false;
 }
 
-function httpGet(url, callback) {
+function getDocumentInUrl(url, callback) {
     var xmlhttp;
     if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari
         xmlhttp = new XMLHttpRequest();
@@ -80,39 +108,38 @@ function httpGet(url, callback) {
     xmlhttp.send();
 }
 
-var episodeItems = document.getElementsByClassName('episode-item');
-
-if (episodeItems.length == 0) {
-    chrome.runtime.sendMessage({MessageType: 'isAllValid', isValid: false}, function(response) {});
+function sendIsAllValidMessage(isValid) {
+    chrome.runtime.sendMessage({MessageType: 'isAllValid', isValid: isValid}, function(response) {});
 }
+
+if (getType() !== 'RTPPlay') {
+    sendIsAllValidMessage(false);
+} 
 else {
-    var isFound = false;
 
-    var numberOfItemsConcluded = 0;
-    
-    for (var i = 0 ; i < episodeItems.length ; i++) {
+    var episodeItems = document.getElementsByClassName('episode-item');
 
-        httpGet(window.location.origin + episodeItems[i].getAttribute("href"), function(d) {
-            
-            var scriptTags = d.getElementsByTagName('script');
-
-            for (var i = 0 ; i < scriptTags.length ; i++) {
-
-                isValidAndGetType(scriptTags[i], function(isOk, type) {
-
-                    if (isOk) {
-            
-                        if (type == 'RTPPlay') {
-                            isFound = isValidRTPPlay(scriptTags[i].text);
-                        }
-                    }
-                });
-            }  
-            numberOfItemsConcluded = numberOfItemsConcluded + 1;
-            if (numberOfItemsConcluded == numberOfItemsConcluded) {
-                chrome.runtime.sendMessage({MessageType: 'isAllValid', isValid: isFound}, function(response) {});
-            }          
-        });
+    if (episodeItems.length == 0) {
+        sendIsAllValidMessage(false);
     }
-    
+    else {
+        var isFound = false;
+
+        var numberOfEpisodeItemsConcluded = 0;
+        var numberOfEpisodeItems = episodeItems.length;
+
+        for (var i = 0 ; i < numberOfEpisodeItems ; i++) {
+
+            getDocumentInUrl(window.location.origin + episodeItems[i].getAttribute("href"), function(doc) {
+                
+                isFound = isValid(doc) || isFound;
+                
+                numberOfEpisodeItemsConcluded = numberOfEpisodeItemsConcluded + 1;
+                if (numberOfEpisodeItemsConcluded == numberOfEpisodeItems) {
+                    sendIsAllValidMessage(isFound);
+                }          
+            });
+        }
+
+    }
 }

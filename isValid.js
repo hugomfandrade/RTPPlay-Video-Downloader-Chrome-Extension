@@ -60,18 +60,18 @@ function getType() {
     return "unknown";
 }
 
-function isValid() {
+function isValid(doc) {
     
     var type = getType();
     
     if (type === 'RTPPlay') {
         // might be an RTPPlay file
     
-        if (document === undefined) {
+        if (doc === undefined) {
             return false;
         }
         
-        var scriptTags = document.getElementsByTagName('script');
+        var scriptTags = doc.getElementsByTagName('script');
         
         if (scriptTags === undefined) {
             return false;
@@ -90,7 +90,7 @@ function isValid() {
     return false;
 }
 
-var isOk = isValid();
+var isOk = isValid(document);
 var type = getType();
 
 chrome.runtime.sendMessage({MessageType: 'isValid', isValid: isOk, type: type}, function(response) {});
