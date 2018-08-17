@@ -67,8 +67,20 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         }
     }
     else {
+        //chrome.tabs.executeScript(null, {file: "debug.js"});
         //console.log('download -> ' + request.linkSubString + " = " + request.filename);
         chrome.downloads.download({url: request.linkSubString, filename: request.filename},function(id) {
+            /*chrome.tabs.executeScript(null, {file: "debug.js"});
+            if (id === undefined) {
+                chrome.tabs.executeScript(null, {
+                    code: 'var debugmessage = ' + JSON.stringify(chrome.runtime.lastError) + ';'//JSON.stringify(config)
+                }, function() {
+                    chrome.tabs.executeScript(null, {file: 'debugMessage.js'});
+                });
+                //chrome.runtime.lastError
+                //chrome.tabs.executeScript(null, {file: "debug.js"});
+            }/**/
+            
             //console.log('post-download -> ' + request.linkSubString + " = " + request.filename);
         });
     }

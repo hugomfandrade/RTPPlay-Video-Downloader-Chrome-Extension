@@ -17,6 +17,7 @@ String.prototype.indexOfEx = function(text) {
 function getTabTitle(d) {
     return d.getElementsByTagName('title')[0].text
         .replaceAll('-',' ')
+        .replaceAll(':',' ')
         .replace(/\s{2,}/g,' ')
         .replaceAll(' ', '.')
         .normalize('NFD').replace(/[\u0300-\u036f]/g, "");
