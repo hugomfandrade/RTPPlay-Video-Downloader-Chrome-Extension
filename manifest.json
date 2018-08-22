@@ -1,7 +1,7 @@
 {
-    "name": "RTPPlay Downloader",
+    "name": "RTP Play Downloader",
     "version": "1.0.1",
-    "description": "Download RTPPlay videos",
+    "description": "Download RTP Play videos",
     "permissions": ["declarativeContent", "activeTab", "downloads", "tabs", "<all_urls>", "management", "contextMenus"],
     "background": {
         "scripts": ["background.js"]
