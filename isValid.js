@@ -56,6 +56,18 @@ function getType() {
     if (window.location.href.indexOf("www.rtp.pt/play") >= 0) {
         return 'RTPPlay';
     }
+    
+    if (window.location.host.indexOf("sicradical.sapo.pt") >= 0) {
+        return 'SICRadical';
+    }
+    
+    if (window.location.host.indexOf("sicnoticias.sapo.pt") >= 0) {
+        return 'SICNoticias';
+    }
+    
+    if (window.location.host.indexOf("sic.sapo.pt") >= 0) {
+        return 'SIC';
+    }
 
     return "unknown";
 }
@@ -86,11 +98,34 @@ function isValid(doc) {
             }
         }
     }
+    else if (type.indexOf('SIC') >= 0) {
+        // might be a SIC file
+    
+        if (doc === undefined) {
+            return false;
+        }
+        
+        var videoTags = doc.getElementsByTagName('video');
+        
+        if (videoTags === undefined) {
+            return false;
+        }
+        
+        for (var i = 0 ; i < videoTags.length ; i++) {
+            
+            var link = window.location.protocol + videoTags[i].getAttribute("src");
+
+            if (videoTags[i].getAttribute("src") !== undefined) {
+                return true;
+            }
+        }
+    }
 
     return false;
 }
 
 var isOk = isValid(document);
+
 var type = getType();
 
 chrome.runtime.sendMessage({MessageType: 'isValid', isValid: isOk, type: type}, function(response) {});

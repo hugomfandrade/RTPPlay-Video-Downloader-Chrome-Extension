@@ -16,8 +16,8 @@ String.prototype.indexOfEx = function(text) {
 
 function download(link, filename) {
     
-    //console.log('filename = ' + filename);
-    //console.log('linkSubString = ' + link);
+    console.log('filename = ' + filename);
+    console.log('link = ' + link);
     chrome.runtime.sendMessage({linkSubString: link, filename: filename}, function(response) { });
 }
 
@@ -51,6 +51,7 @@ function getTabTitle(doc) {
     return doc.getElementsByTagName('title')[0].text
         .replaceAll('-',' ')
         .replaceAll(':',' ')
+        .replaceAll('\\|',' ')
         .replace(/\s{2,}/g,' ')
         .replaceAll(' ', '.')
         .normalize('NFD').replace(/[\u0300-\u036f]/g, "");
@@ -170,7 +171,7 @@ function getRTPPlayFileLinks(doc) {
         var scriptTags = doc.getElementsByTagName('script');
         
         if (scriptTags === undefined) {
-            return false;
+            return rtpPlayLinks;
         }
         
         for (var i = 0 ; i < scriptTags.length ; i++) {
@@ -224,6 +225,28 @@ function isValid(doc) {
             }
         }
     }
+    else if (type.indexOf('SIC') >= 0) {
+        // might be a SIC file
+    
+        if (doc === undefined) {
+            return false;
+        }
+        
+        var videoTags = doc.getElementsByTagName('video');
+        
+        if (videoTags === undefined) {
+            return false;
+        }
+        
+        for (var i = 0 ; i < videoTags.length ; i++) {
+            
+            var link = window.location.protocol + videoTags[i].getAttribute("src");
+
+            if (videoTags[i].getAttribute("src") !== undefined) {
+                return true;
+            }
+        }
+    }
 
     return false;
 }
@@ -232,6 +255,18 @@ function getType() {
     
     if (window.location.href.indexOf("www.rtp.pt/play") >= 0) {
         return 'RTPPlay';
+    }
+    
+    if (window.location.host.indexOf("sicradical.sapo.pt") >= 0) {
+        return 'SICRadical';
+    }
+    
+    if (window.location.host.indexOf("sicnoticias.sapo.pt") >= 0) {
+        return 'SICNoticias';
+    }
+    
+    if (window.location.host.indexOf("sic.sapo.pt") >= 0) {
+        return 'SIC';
     }
 
     return "unknown";
@@ -253,6 +288,58 @@ function getDocumentPartInUrl(url, part, callback) {
     }
     xmlhttp.open("GET", url, false);
     xmlhttp.send();
+}
+
+function getSICFileLinks(doc) {
+    
+    var sicLinks = [];
+    
+    if (isValid(doc) && getType().indexOf('SIC') >= 0) {
+        
+        var videoTags = doc.getElementsByTagName('video');
+        
+        if (videoTags === undefined) {
+            return sicLinks;
+        }
+
+        for (var i = 0 ; i < videoTags.length ; i++) {
+
+            var link = window.location.protocol + videoTags[i].getAttribute("src");
+            
+            if (videoTags[i].getAttribute("src") !== undefined) {
+                sicLinks.push(link);
+            }
+        }        
+    }
+    
+    return sicLinks;
+}
+
+function downloadSICFromDocument(doc, filename) {
+    
+    var sicFileLinks = getSICFileLinks(doc);
+
+    if (sicFileLinks.length === 0) {
+        alert('No SIC file found');
+    }
+    else {
+
+        for (var i = 0 ; i < sicFileLinks.length ; i++) {
+
+            var link = sicFileLinks[i];
+            
+            var ext = link.substr(link.lastIndexOf('.'), link.length);
+            
+            if (ext.indexOf('/net_wide') >= 0) {
+                ext = ext.substr(0, ext.indexOf('/net_wide'));
+            }
+
+            filename = filename + ext;
+
+            download(link, filename);
+        }
+    }  
+    
 }
 
 var isOk = isValid(document);
@@ -285,6 +372,9 @@ else {
         else {
             downloadRTPPlayFromDocument(document, getTabTitle(document));
         }
+    } else if (type.indexOf('SIC') >= 0) {
+        
+        downloadSICFromDocument(document, getTabTitle(document));
     }
     else {
         alert('No valid file found'); 

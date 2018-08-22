@@ -1,6 +1,8 @@
 # RTPPlay Video Downloader
 A Google Chrome Extension used for downloading videos and audio files of the RTP Play platform [http://www.rtp.pt/play/].
 
+The release version can be found and installed from the Chrome Web Store here [https://chrome.google.com/webstore/detail/rtp-play-downloader/gkhblejhpbmcifjambpdlekgmhbflpol].
+
 ## Load extension
 
 1. Open the Extension Management page by navigating to chrome://extensions.
