@@ -16,8 +16,8 @@ String.prototype.indexOfEx = function(text) {
 
 function download(link, filename) {
     
-    console.log('filename = ' + filename);
-    console.log('link = ' + link);
+    //console.log('filename = ' + filename);
+    //console.log('link = ' + link);
     chrome.runtime.sendMessage({linkSubString: link, filename: filename}, function(response) { });
 }
 
@@ -333,8 +333,16 @@ function downloadSICFromDocument(doc, filename) {
             if (ext.indexOf('/net_wide') >= 0) {
                 ext = ext.substr(0, ext.indexOf('/net_wide'));
             }
+            if (ext.length >= 4) {
+                ext = "";
+            }
 
             filename = filename + ext;
+            
+            if ((filename.length - filename.lastIndexOf('.')) > 4) {
+                // does not have extension
+                filename = filename + ".mp4";
+            }
 
             download(link, filename);
         }

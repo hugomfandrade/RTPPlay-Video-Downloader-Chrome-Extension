@@ -112,6 +112,26 @@ function sendIsAllValidMessage(isValid) {
     chrome.runtime.sendMessage({MessageType: 'isAllValid', isValid: isValid}, function(response) {});
 }
 
+function isEpisodeItemValid(episodeItems, it) {
+    
+    getDocumentInUrl(window.location.origin + episodeItems[it].getAttribute("href"), function(doc) {
+
+        if (isValid(doc) === true) {
+            sendIsAllValidMessage(true);
+        }
+        else {
+            var nextIt = it + 1;
+            
+            if (nextIt === episodeItems.length) {
+                sendIsAllValidMessage(false);
+            }
+            else {
+                isEpisodeItemValid(episodeItems, nextIt);
+            }
+        } 
+    });
+}
+
 if (getType() !== 'RTPPlay') {
     sendIsAllValidMessage(false);
 } 
@@ -119,27 +139,10 @@ else {
 
     var episodeItems = document.getElementsByClassName('episode-item');
 
-    if (episodeItems.length == 0) {
+    if (episodeItems.length === 0) {
         sendIsAllValidMessage(false);
     }
     else {
-        var isFound = false;
-
-        var numberOfEpisodeItemsConcluded = 0;
-        var numberOfEpisodeItems = episodeItems.length;
-
-        for (var i = 0 ; i < numberOfEpisodeItems ; i++) {
-
-            getDocumentInUrl(window.location.origin + episodeItems[i].getAttribute("href"), function(doc) {
-                
-                isFound = isValid(doc) || isFound;
-                
-                numberOfEpisodeItemsConcluded = numberOfEpisodeItemsConcluded + 1;
-                if (numberOfEpisodeItemsConcluded == numberOfEpisodeItems) {
-                    sendIsAllValidMessage(isFound);
-                }          
-            });
-        }
-
+        isEpisodeItemValid(episodeItems, 0);
     }
 }
