@@ -138,24 +138,27 @@ function getRTPPlayLinkFromScript(scriptText) {
     }
     
     var rtpPlayerSubString = scriptText.substring(scriptText.indexOfEx('RTPPlayer({'), scriptText.lastIndexOf('})'));
-
-    if (rtpPlayerSubString.indexOf('file: \"') >= 0) {
-
-        var link = rtpPlayerSubString.substr(
-            rtpPlayerSubString.indexOfEx('file: \"'), 
-            rtpPlayerSubString.substr(rtpPlayerSubString.indexOfEx('file: \"')).indexOf('\",'));
-
-        if (link.indexOf('.mp4') >= 0) { // is video file
+    
+    if (rtpPlayerSubString.indexOf('.mp4') >= 0) {  // is video file
+        
+        if (rtpPlayerSubString.indexOf('fileKey: \"') >= 0) {
             
-            link = 
-                link.substring(0, link.indexOf('index')) +
-                link.substring(link.indexOfEx('streams='), link.indexOfEx('.mp4'));
-
-            return link;
+            var link = rtpPlayerSubString.substr(
+                rtpPlayerSubString.indexOfEx('fileKey: \"'), 
+                rtpPlayerSubString.substr(rtpPlayerSubString.indexOfEx('fileKey: \"')).indexOf('\",'));
+            
+            return "http://cdn-ondemand.rtp.pt" + link;
         }
-        else if (link.indexOf('.mp3') >= 0) { // is audio file
+        
+    }
+    else if (rtpPlayerSubString.indexOf('.mp3') >= 0) { // is audio file
 
-            return link;
+        if (rtpPlayerSubString.indexOf('file: \"') >= 0) {
+
+            return rtpPlayerSubString.substr(
+                rtpPlayerSubString.indexOfEx('file: \"'), 
+                rtpPlayerSubString.substr(rtpPlayerSubString.indexOfEx('file: \"')).indexOf('\",'));
+            
         }
     }
     return undefined;
