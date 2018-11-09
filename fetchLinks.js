@@ -54,6 +54,7 @@ function getTabTitle(doc) {
         .replaceAll('\\|',' ')
         .replace(/\s{2,}/g,' ')
         .replaceAll(' ', '.')
+        .replaceAll('.RTP.Play.RTP', '')
         .normalize('NFD').replace(/[\u0300-\u036f]/g, "");
 }
 
