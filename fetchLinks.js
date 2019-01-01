@@ -58,7 +58,7 @@ function getTabTitle(doc) {
         .normalize('NFD').replace(/[\u0300-\u036f]/g, "");
 }
 
-function hasPagination(doc) {
+function getPaginationType(doc) {
 
     var mainElems = doc.getElementsByClassName("bg-dark-gray");
     
@@ -81,7 +81,7 @@ function hasPagination(doc) {
                     for (var n = 0 ; n < items.length ; n++) {
 
                         if (items[n].getAttribute("href") !== undefined) {
-                            return true;
+                            return 1;
                         }
                     }
                 }
@@ -89,7 +89,32 @@ function hasPagination(doc) {
         }
     }
     
-    return false;
+    // version 2         
+    var mainPaginationContainers = doc.getElementsByClassName("section-parts");
+
+    for (var j = 0 ; j < mainPaginationContainers.length ; j++) {
+
+        var mainPaginations = mainPaginationContainers[j].getElementsByClassName("parts");
+
+        for (var l = 0 ; l < mainPaginations.length ; l++) {
+
+            var itemElem = mainPaginations[l].getElementsByTagName("li");
+
+            for (var m = 0 ; m < itemElem.length ; m++) {
+
+                var items = itemElem[m].getElementsByTagName("a");
+
+                for (var n = 0 ; n < items.length ; n++) {
+
+                    if (items[n].getAttribute("href") !== undefined) {
+                        return 2;
+                    }
+                }
+            }
+        }
+    }
+    
+    return 0;
 }
 
 function getRTPPlayPaginationLinks(doc) {
@@ -121,6 +146,54 @@ function getRTPPlayPaginationLinks(doc) {
                             rtpPlayLinks.push({
                                 link: window.location.origin + items[n].getAttribute("href"),
                                 part: "P" + items[n].innerHTML.replaceAll('Parte',' ').replace(/\s/g, '')
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    return rtpPlayLinks;
+}
+
+function getRTPPlayPaginationLinksType2(doc) {
+    
+    var rtpPlayLinks = [];
+    
+    var mainPaginationContainers = doc.getElementsByClassName("section-parts");
+
+    for (var j = 0 ; j < mainPaginationContainers.length ; j++) {
+
+        var mainPaginations = mainPaginationContainers[j].getElementsByClassName("parts");
+
+        for (var l = 0 ; l < mainPaginations.length ; l++) {
+
+            var itemElem = mainPaginations[l].getElementsByTagName("li");
+            
+            for (var m = 0 ; m < itemElem.length ; m++) {
+
+                var items = itemElem[m].getElementsByTagName("a");
+                
+                if (items.length === 0) {
+
+                    var spans = itemElem[m].getElementsByTagName("span");
+                    
+                    for (var n = 0 ; n < spans.length ; n++) {
+                        rtpPlayLinks.push({
+                            link: window.location.href,
+                            part: "P" + spans[n].innerHTML.replaceAll('Parte',' ').replaceAll('PARTE',' ').replace(/\s/g, '')
+                        });
+                    }
+                }
+                else {
+
+                    for (var n = 0 ; n < items.length ; n++) {
+
+                        if (items[n].getAttribute("href") !== undefined) {
+                            rtpPlayLinks.push({
+                                link: window.location.origin + items[n].getAttribute("href"),
+                                part: "P" + items[n].innerHTML.replaceAll('Parte',' ').replaceAll('PARTE',' ').replace(/\s/g, '')
                             });
                         }
                     }
@@ -364,7 +437,12 @@ else {
 
     if (type === 'RTPPlay') {
         
-        if (hasPagination(document)) {
+        var paginationType = getPaginationType(document);
+        
+        if (paginationType === 0) {
+            downloadRTPPlayFromDocument(document, getTabTitle(document));
+        }           
+        else if (paginationType === 1) {
             var rtpPlayPaginationLinks = getRTPPlayPaginationLinks(document);
             
             if (rtpPlayPaginationLinks.length === 0) {
@@ -376,13 +454,27 @@ else {
                     
                     getDocumentPartInUrl(rtpPlayPaginationLinks[i].link, rtpPlayPaginationLinks[i].part, function(part, doc) {
 
-                        downloadRTPPlayFromDocument(doc, getTabTitle(document) + "." + part);
+                        downloadRTPPlayFromDocument(document, getTabTitle(document) + "." + part);
                     });
                 }
             }
         }
-        else {
-            downloadRTPPlayFromDocument(document, getTabTitle(document));
+        else if (paginationType === 2) {
+            var rtpPlayPaginationLinks = getRTPPlayPaginationLinksType2(document);
+
+            if (rtpPlayPaginationLinks.length === 0) {
+                alert('No Pagination files found');
+            }
+            else {
+
+                for (var i = 0 ; i < rtpPlayPaginationLinks.length ; i++) {
+
+                    getDocumentPartInUrl(rtpPlayPaginationLinks[i].link, rtpPlayPaginationLinks[i].part, function(part, pdoc) {
+
+                        downloadRTPPlayFromDocument(pdoc, getTabTitle(document) + "." + part);
+                    });
+                }
+            }
         }
     } else if (type.indexOf('SIC') >= 0) {
         
