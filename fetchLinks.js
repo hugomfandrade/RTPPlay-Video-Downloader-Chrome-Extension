@@ -334,15 +334,15 @@ function getType() {
         return 'RTPPlay';
     }
     
-    if (window.location.host.indexOf("sicradical.sapo.pt") >= 0) {
+    if (window.location.host.indexOf("sicradical.sapo.pt" || window.location.host.indexOf("sicradical.pt") >= 0) {
         return 'SICRadical';
     }
     
-    if (window.location.host.indexOf("sicnoticias.sapo.pt") >= 0) {
+    if (window.location.host.indexOf("sicnoticias.pt") >= 0 || window.location.host.indexOf("sicnoticias.sapo.pt") >= 0) {
         return 'SICNoticias';
     }
     
-    if (window.location.host.indexOf("sic.sapo.pt") >= 0) {
+    if (window.location.host.indexOf("sic.sapo.pt") >= 0 || window.location.host.indexOf("sic.pt") >= 0) {
         return 'SIC';
     }
 
