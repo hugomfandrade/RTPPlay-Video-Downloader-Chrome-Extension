@@ -49,13 +49,15 @@ function downloadRTPPlayFromDocument(doc, filename) {
 
 function getTabTitle(doc) {
     return doc.getElementsByTagName('title')[0].text
+        .replace(/[&\/\\#,+()$~%.'":*?<>{}]/g, '')
         .replaceAll('-',' ')
         .replaceAll(':',' ')
         .replaceAll('\\|',' ')
         .replace(/\s{2,}/g,' ')
         .replaceAll(' ', '.')
         .replaceAll('.RTP.Play.RTP', '')
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, "");
 }
 
 function getPaginationType(doc) {
@@ -416,7 +418,7 @@ function downloadSICFromDocument(doc, filename) {
 
             filename = filename + ext;
             
-            if ((filename.length - filename.lastIndexOf('.')) > 4) {
+            if ((filename.length - filename.lastIndexOf('.')) !== 4) {
                 // does not have extension
                 filename = filename + ".mp4";
             }
