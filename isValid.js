@@ -4,11 +4,6 @@
 
 'use strict';
 
-String.prototype.indexOfEx = function(text) {
-    var target = this;
-    return target.indexOf(text) + text.length;
-};
-
 function getRTPPlayLinkFromScript(scriptText) {
     if (scriptText === undefined || 
         scriptText.length === 0 || 
@@ -55,30 +50,9 @@ function isValidRTPPlayScript(scriptText) {
     }
 }
 
-function getType() {
-    
-    if (window.location.href.indexOf("www.rtp.pt/play") >= 0) {
-        return 'RTPPlay';
-    }
-    
-    if (window.location.host.indexOf("sicradical.sapo.pt") >= 0 || window.location.host.indexOf("sicradical.pt") >= 0) {
-        return 'SICRadical';
-    }
-    
-    if (window.location.host.indexOf("sicnoticias.sapo.pt") >= 0 || window.location.host.indexOf("sicnoticias.pt") >= 0) {
-        return 'SICNoticias';
-    }
-    
-    if (window.location.host.indexOf("sic.sapo.pt") >= 0 || window.location.host.indexOf("sic.pt") >= 0) {
-        return 'SIC';
-    }
-
-    return "unknown";
-}
-
 function isValid(doc) {
     
-    var type = getType();
+    var type = getDataType();
     
     if (type === 'RTPPlay') {
         // might be an RTPPlay file
@@ -128,8 +102,99 @@ function isValid(doc) {
     return false;
 }
 
-var isOk = isValid(document);
+/***************************************************************/
+/***************************************************************/
 
-var type = getType();
+function isEpisodeValid(doc) {
+    
+    var type = getDataType();
+    
+    if (type === 'RTPPlay') {
+        // might be an RTPPlay file
+    
+        if (doc === undefined) {
+            return false;
+        }
+        
+        var scriptTags = doc.getElementsByTagName('script');
+        
+        if (scriptTags === undefined) {
+            return false;
+        }
+        
+        for (var i = 0 ; i < scriptTags.length ; i++) {
+            
+            var text = scriptTags[i].text;
 
-chrome.runtime.sendMessage({MessageType: 'isValid', isValid: isOk, type: type}, function(response) {});
+            if (isValidRTPPlayScript(text) === true) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+function isEpisodeItemValid(episodeItems, it) {
+    
+    getDocumentInUrl(window.location.origin + episodeItems[it].getAttribute("href"), function(doc) {
+
+        if (isValid(doc) === true) {
+            sendIsAllValidMessage(true);
+        }
+        else {
+            var nextIt = it + 1;
+            
+            if (nextIt === episodeItems.length) {
+                sendIsAllValidMessage(false);
+            }
+            else {
+                isEpisodeItemValid(episodeItems, nextIt);
+            }
+        } 
+    });
+}
+
+function sendIsAllValidMessage(isEpisodeOk) {
+
+    var isOk = isValid(document);
+
+    var type = getDataType();
+
+    chrome.runtime.sendMessage({MessageType: 'isValid', 
+                                type: type, 
+                                isValid: isOk, 
+                                isEpisodeValid: isEpisodeOk}, function(response) {});
+}
+
+function main() {
+
+    if (getDataType() !== 'RTPPlay') {
+        sendIsAllValidMessage(false);
+    } 
+    else {
+
+        var episodeItems = document.getElementsByClassName('episode-item');
+
+        if (episodeItems.length === 0) {
+            sendIsAllValidMessage(false);
+        }
+        else {
+            isEpisodeItemValid(episodeItems, 0);
+        }
+    }
+}
+
+/***************************************************************/
+/***************************************************************/
+
+main(document);
+
+// require("backgroundDatatype.js");
+
+/*import('./backgroundDatatype.js').then(module => {
+    console.log("isValidAfterimport = " + module.getDataType());
+});
+import('./testImport.js').then(module => {
+    console.log("isValidAfterimport = " + module.getDataType());
+});*/

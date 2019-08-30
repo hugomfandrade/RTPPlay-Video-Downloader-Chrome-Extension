@@ -4,8 +4,4 @@
 
 'use strict';
 
-console.log("DEBUG");
-console.log(debugmessage);
-
-//alert('DEBUG');
-//chrome.runtime.sendMessage({Debug: 'Debug'}, function(response) {});
+console.log("DEBUG" + debugmessage);

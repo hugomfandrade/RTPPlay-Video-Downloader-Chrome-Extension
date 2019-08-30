@@ -2,9 +2,18 @@
     "name": "RTP Play Downloader",
     "version": "1.0.9",
     "description": "Download RTP Play videos",
-    "permissions": ["declarativeContent", "activeTab", "downloads", "tabs", "<all_urls>", "management", "contextMenus"],
+    "permissions": ["declarativeContent",
+                    "activeTab", 
+                    "downloads", 
+                    "tabs", 
+                    "<all_urls>",
+                    "management", 
+                    "contextMenus"
+                   ],
     "background": {
-        "scripts": ["background.js"]
+        "scripts": [
+            "background.js"
+        ]
     },
     "icons": {
         "16": "images/rtpplay_downloader_16.png",

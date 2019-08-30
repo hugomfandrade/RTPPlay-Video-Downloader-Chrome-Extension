@@ -420,3 +420,5 @@ else {
         alert('No valid file found');
     }
 }
+
+console.log("fetchAllLinks");

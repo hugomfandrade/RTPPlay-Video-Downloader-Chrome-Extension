@@ -5,9 +5,12 @@ chrome.contextMenus.removeAll();
 chrome.contextMenus.create({
     id: "disable_context_menu_item",
     title: "Download all",
-    contexts: ["browser_action"],
-    onclick: function() {
-        chrome.tabs.executeScript(null, {file: "fetchAllLinks.js"});
+    contexts: ["browser_action"]
+});
+
+chrome.contextMenus.onClicked.addListener(function(info, tab) {
+    if (info.menuItemId === "disable_context_menu_item") {
+        chrome.tabs.executeScript(tab.id, {file: "fetchAllLinks.js"});
     }
 });
 
@@ -23,10 +26,12 @@ chrome.runtime.onInstalled.addListener(function() {
     });
 
     chrome.browserAction.disable(null, function() { 
+        chrome.tabs.executeScript(null, {file: "backgroundDatatype.js"});
         chrome.tabs.executeScript(null, {file: "isValid.js"});
     });
     chrome.contextMenus.update("disable_context_menu_item", {enabled: false}, function() {
-        chrome.tabs.executeScript(null, {file: "isAllValid.js"});
+        chrome.tabs.executeScript(null, {file: "backgroundDatatype.js"});
+        chrome.tabs.executeScript(null, {file: "isValid.js"});
     });
 });
 
@@ -34,10 +39,12 @@ chrome.management.onEnabled.addListener(function(info) {
     //console.log(JSON.stringify(info));
 
     chrome.browserAction.disable(null, function() { 
+        chrome.tabs.executeScript(null, {file: "backgroundDatatype.js"});
         chrome.tabs.executeScript(null, {file: "isValid.js"});
     });
     chrome.contextMenus.update("disable_context_menu_item", {enabled: false}, function() {
-        chrome.tabs.executeScript(null, {file: "isAllValid.js"});
+        chrome.tabs.executeScript(null, {file: "backgroundDatatype.js"});
+        chrome.tabs.executeScript(null, {file: "isValid.js"});
     });
 });
     
@@ -46,6 +53,9 @@ chrome.browserAction.onClicked.addListener(function(tab) {
 });
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    chrome.tabs.executeScript(null, {
+        code: 'var debugmessage = ' + '"onMessage = ' + request.isValid + ' , ' + request.isEpisodeValid + '"' + ';'
+    }, function() {chrome.tabs.executeScript(null, {file: 'debugMessage.js'});});
     if (request.MessageType === 'isValid') {
         if (sender.tab.id === activeTabID) {
             if (request.isValid === true) {
@@ -54,35 +64,13 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
             else {
                 chrome.browserAction.disable(activeTabID, function() { });
             }
-        }
-    }
-    else if (request.MessageType === 'isAllValid') {
-        if (sender.tab.id === activeTabID) {
-            if (request.isValid === true) {
-                chrome.contextMenus.update("disable_context_menu_item", {enabled: true});
-            }
-            else {
-                chrome.contextMenus.update("disable_context_menu_item", {enabled: false});
-            }
+            
+            chrome.contextMenus.update("disable_context_menu_item", {enabled: request.isEpisodeValid});
+            
         }
     }
     else {
-        //chrome.tabs.executeScript(null, {file: "debug.js"});
-        //console.log('download -> ' + request.linkSubString + " = " + request.filename);
-        chrome.downloads.download({url: request.linkSubString, filename: request.filename},function(id) {
-            /*chrome.tabs.executeScript(null, {file: "debug.js"});
-            if (id === undefined) {
-                chrome.tabs.executeScript(null, {
-                    code: 'var debugmessage = ' + JSON.stringify(chrome.runtime.lastError) + ';'//JSON.stringify(config)
-                }, function() {
-                    chrome.tabs.executeScript(null, {file: 'debugMessage.js'});
-                });
-                //chrome.runtime.lastError
-                //chrome.tabs.executeScript(null, {file: "debug.js"});
-            }/**/
-            
-            //console.log('post-download -> ' + request.linkSubString + " = " + request.filename);
-        });
+        chrome.downloads.download({url: request.linkSubString, filename: request.filename},function(id) {});
     }
 });
 
@@ -95,10 +83,12 @@ chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs) {
         
         if (tab.id === activeTabID) {
             chrome.browserAction.disable(activeTabID, function() { 
+                chrome.tabs.executeScript(activeTabID, {file: "backgroundDatatype.js"});
                 chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
             });
             chrome.contextMenus.update("disable_context_menu_item", {enabled: false}, function() {
-                chrome.tabs.executeScript(activeTabID, {file: "isAllValid.js"});
+                chrome.tabs.executeScript(null, {file: "backgroundDatatype.js"});
+                chrome.tabs.executeScript(null, {file: "isValid.js"});
             });
         }
     });
@@ -110,10 +100,12 @@ chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs) {
                 activeTabID = tab.id;
 
                 chrome.browserAction.disable(activeTabID, function() { 
+                    chrome.tabs.executeScript(activeTabID, {file: "backgroundDatatype.js"});
                     chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
                 });
                 chrome.contextMenus.update("disable_context_menu_item", {enabled: false}, function() {
-                    chrome.tabs.executeScript(activeTabID, {file: "isAllValid.js"});
+                    chrome.tabs.executeScript(null, {file: "backgroundDatatype.js"});
+                    chrome.tabs.executeScript(null, {file: "isValid.js"});
                 });
             }
         });
@@ -125,12 +117,12 @@ chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs) {
         }
         if (tabId === activeTabID) {
             if (info.status === 'complete') {
+                chrome.tabs.executeScript(tabId, {file: "backgroundDatatype.js"});
                 chrome.tabs.executeScript(tabId, {file: "isValid.js"});
-                chrome.tabs.executeScript(tabId, {file: "isAllValid.js"});
             }
             else if (info.status === 'loading') {
+                chrome.tabs.executeScript(tabId, {file: "backgroundDatatype.js"});
                 chrome.tabs.executeScript(tabId, {file: "isValid.js"});
-                chrome.tabs.executeScript(tabId, {file: "isAllValid.js"});
             }
         }
     });
