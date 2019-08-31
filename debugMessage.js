@@ -4,4 +4,4 @@
 
 'use strict';
 
-console.log("DEBUG" + debugmessage);
+console.log("DEBUG = " + debugmessage);

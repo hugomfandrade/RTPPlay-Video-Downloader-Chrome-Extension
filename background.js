@@ -10,8 +10,14 @@ chrome.contextMenus.create({
 
 chrome.contextMenus.onClicked.addListener(function(info, tab) {
     if (info.menuItemId === "disable_context_menu_item") {
+        chrome.tabs.executeScript(tab.id, {file: "backgroundDatatype.js"});
         chrome.tabs.executeScript(tab.id, {file: "fetchAllLinks.js"});
     }
+});
+    
+chrome.browserAction.onClicked.addListener(function(tab) { 
+    chrome.tabs.executeScript(tab.id, {file: "backgroundDatatype.js"});
+    chrome.tabs.executeScript(tab.id, {file: "fetchLinks.js"});
 });
 
 chrome.runtime.onInstalled.addListener(function() {
@@ -46,10 +52,6 @@ chrome.management.onEnabled.addListener(function(info) {
         chrome.tabs.executeScript(null, {file: "backgroundDatatype.js"});
         chrome.tabs.executeScript(null, {file: "isValid.js"});
     });
-});
-    
-chrome.browserAction.onClicked.addListener(function(tab) { 
-    chrome.tabs.executeScript(tab.id, {file: "fetchLinks.js"});
 });
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {

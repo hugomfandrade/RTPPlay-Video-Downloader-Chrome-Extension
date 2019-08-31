@@ -4,15 +4,9 @@
 
 'use strict';
 
-String.prototype.replaceAll = function(search, replacement) {
-    var target = this;
-    return target.replace(new RegExp(search, 'g'), replacement);
-};
-
-String.prototype.indexOfEx = function(text) {
-    var target = this;
-    return target.indexOf(text) + text.length;
-};
+/***********************/
+/*****    COMMON    ****/
+/***********************/
 
 function download(link, filename) {
     
@@ -20,6 +14,10 @@ function download(link, filename) {
     //console.log('link = ' + link);
     chrome.runtime.sendMessage({linkSubString: link, filename: filename}, function(response) { });
 }
+
+/***********************/
+/***    RTP Play    ****/
+/***********************/
 
 function downloadRTPPlayFromDocument(doc, filename) {
     
@@ -47,20 +45,7 @@ function downloadRTPPlayFromDocument(doc, filename) {
     }
 }
 
-function getTabTitle(doc) {
-    return doc.getElementsByTagName('title')[0].text
-        .replace(/[&\/\\#,+()$~%.'":*?<>{}]/g, '')
-        .replaceAll('-',' ')
-        .replaceAll(':',' ')
-        .replaceAll('\\|',' ')
-        .replace(/\s{2,}/g,' ')
-        .replaceAll(' ', '.')
-        .replaceAll('.RTP.Play.RTP', '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, "");
-}
-
-function getPaginationType(doc) {
+function getRTPPaginationType(doc) {
 
     var mainElems = doc.getElementsByClassName("bg-dark-gray");
     
@@ -119,7 +104,7 @@ function getPaginationType(doc) {
     return 0;
 }
 
-function getRTPPlayPaginationLinks(doc) {
+function getRTPPlayPaginationLinksV1(doc) {
     
     var rtpPlayLinks = [];
 
@@ -159,7 +144,7 @@ function getRTPPlayPaginationLinks(doc) {
     return rtpPlayLinks;
 }
 
-function getRTPPlayPaginationLinksType2(doc) {
+function getRTPPlayPaginationLinksV2(doc) {
     
     var rtpPlayLinks = [];
     
@@ -207,50 +192,16 @@ function getRTPPlayPaginationLinksType2(doc) {
     return rtpPlayLinks;
 }
 
-function getRTPPlayLinkFromScript(scriptText) {
-    if (scriptText === undefined || 
-        scriptText.length === 0 || 
-        scriptText.indexOf('RTPPlayer({') < 0) {
-        return undefined;
-    }
-    
-    var rtpPlayerSubString = scriptText.substring(scriptText.indexOfEx('RTPPlayer({'), scriptText.lastIndexOf('})'));
-    
-    if (rtpPlayerSubString.indexOf('.mp4') >= 0) {  // is video file
-        
-        if (rtpPlayerSubString.indexOf('fileKey: \"') >= 0) {
-            
-            var link = rtpPlayerSubString.substr(
-                rtpPlayerSubString.indexOfEx('fileKey: \"'), 
-                rtpPlayerSubString.substr(rtpPlayerSubString.indexOfEx('fileKey: \"')).indexOf('\",'));
-            
-            return "http://cdn-ondemand.rtp.pt" + link;
-        }
-        
-    }
-    else if (rtpPlayerSubString.indexOf('.mp3') >= 0) { // is audio file
-
-        if (rtpPlayerSubString.indexOf('file: \"') >= 0) {
-
-            return rtpPlayerSubString.substr(
-                rtpPlayerSubString.indexOfEx('file: \"'), 
-                rtpPlayerSubString.substr(rtpPlayerSubString.indexOfEx('file: \"')).indexOf('\",'));
-            
-        }
-    }
-    return undefined;
-}
-
 function getRTPPlayFileLinks(doc) {
     
     var rtpPlayLinks = [];
     
-    if (isValid(doc) && getType() === 'RTPPlay') {
+    if (isValid(doc) && getDataType() === 'RTPPlay') {
         
         var scriptTags = doc.getElementsByTagName('script');
         
         if (scriptTags === undefined) {
-            return rtpPlayLinks;
+            return false;
         }
         
         for (var i = 0 ; i < scriptTags.length ; i++) {
@@ -267,132 +218,9 @@ function getRTPPlayFileLinks(doc) {
     return rtpPlayLinks;
 }
 
-function isValidRTPPlayScript(scriptText) {
-    var link = getRTPPlayLinkFromScript(scriptText);
-    
-    if (link === undefined) {
-        return false;
-    }
-    else {
-        return true;
-    }
-}
-
-function isValid(doc) {
-    
-    var type = getType();
-    
-    if (type === 'RTPPlay') {
-        // might be an RTPPlay file
-    
-        if (document === undefined) {
-            return false;
-        }
-        
-        var scriptTags = doc.getElementsByTagName('script');
-        
-        if (scriptTags === undefined) {
-            return false;
-        }
-        
-        for (var i = 0 ; i < scriptTags.length ; i++) {
-            
-            var text = scriptTags[i].text;
-
-            if (isValidRTPPlayScript(text) === true) {
-                return true;
-            }
-        }
-    }
-    else if (type.indexOf('SIC') >= 0) {
-        // might be a SIC file
-    
-        if (doc === undefined) {
-            return false;
-        }
-        
-        var videoTags = doc.getElementsByTagName('video');
-        
-        if (videoTags === undefined) {
-            return false;
-        }
-        
-        for (var i = 0 ; i < videoTags.length ; i++) {
-            
-            var link = window.location.protocol + videoTags[i].getAttribute("src");
-
-            if (videoTags[i].getAttribute("src") !== undefined) {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-function getType() {
-    
-    if (window.location.href.indexOf("www.rtp.pt/play") >= 0) {
-        return 'RTPPlay';
-    }
-    
-    if (window.location.host.indexOf("sicradical.sapo.pt") >= 0 || window.location.host.indexOf("sicradical.pt") >= 0) {
-        return 'SICRadical';
-    }
-    
-    if (window.location.host.indexOf("sicnoticias.sapo.pt") >= 0 || window.location.host.indexOf("sicnoticias.pt") >= 0) {
-        return 'SICNoticias';
-    }
-    
-    if (window.location.host.indexOf("sic.sapo.pt") >= 0 || window.location.host.indexOf("sic.pt") >= 0) {
-        return 'SIC';
-    }
-
-    return "unknown";
-}
-
-function getDocumentPartInUrl(url, part, callback) {
-    var xmlhttp;
-    if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari
-        xmlhttp = new XMLHttpRequest();
-    }
-    else {// code for IE6, IE5
-        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-    }
-    
-    xmlhttp.onreadystatechange=function() {
-        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-            return callback(part, new DOMParser().parseFromString(xmlhttp.responseText, 'text/html'));
-        }
-    }
-    xmlhttp.open("GET", url, false);
-    xmlhttp.send();
-}
-
-function getSICFileLinks(doc) {
-    
-    var sicLinks = [];
-    
-    if (isValid(doc) && getType().indexOf('SIC') >= 0) {
-        
-        var videoTags = doc.getElementsByTagName('video');
-        
-        if (videoTags === undefined) {
-            return sicLinks;
-        }
-
-        for (var i = 0 ; i < videoTags.length ; i++) {
-
-            var link = window.location.protocol + videoTags[i].getAttribute("src");
-            
-            if (videoTags[i].getAttribute("src") !== undefined) {
-                sicLinks.push(link);
-            }
-        }        
-    }
-    
-    return sicLinks;
-}
+/***********************/
+/******    SIC    ******/
+/***********************/
 
 function downloadSICFromDocument(doc, filename) {
     
@@ -429,60 +257,91 @@ function downloadSICFromDocument(doc, filename) {
     
 }
 
-var isOk = isValid(document);
+function getSICFileLinks(doc) {
     
-if (isOk === false) {
-    alert('No file found');
+    var sicLinks = [];
+    
+    if (isValid(doc) && getDataType().indexOf('SIC') >= 0) {
+        
+        var videoTags = doc.getElementsByTagName('video');
+        
+        if (videoTags === undefined) {
+            return sicLinks;
+        }
+
+        for (var i = 0 ; i < videoTags.length ; i++) {
+
+            var link = window.location.protocol + videoTags[i].getAttribute("src");
+            
+            if (videoTags[i].getAttribute("src") !== undefined) {
+                sicLinks.push(link);
+            }
+        }        
+    }
+    
+    return sicLinks;
 }
-else {
-    var type = getType();
+
+/***************************************************************/
+/***************************************************************/
+
+function main() {
+
+    var isOk = isValid(document);
+
+    if (isOk === false) {
+        alert('No file found');
+        return
+    }
+    
+    var type = getDataType();
 
     if (type === 'RTPPlay') {
-        
-        var paginationType = getPaginationType(document);
-        
+
+        var paginationType = getRTPPaginationType(document);
+
         if (paginationType === 0) {
             downloadRTPPlayFromDocument(document, getTabTitle(document));
-        }           
-        else if (paginationType === 1) {
-            var rtpPlayPaginationLinks = getRTPPlayPaginationLinks(document);
-            
-            if (rtpPlayPaginationLinks.length === 0) {
-                alert('No Pagination files found');
-            }
-            else {
+            return
+        }
+        
+        var rtpPlayPaginationLinks
 
-                for (var i = 0 ; i < rtpPlayPaginationLinks.length ; i++) {
-                    
-                    getDocumentPartInUrl(rtpPlayPaginationLinks[i].link, rtpPlayPaginationLinks[i].part, function(part, doc) {
-
-                        downloadRTPPlayFromDocument(document, getTabTitle(document) + "." + part);
-                    });
-                }
-            }
+        if (paginationType === 1) {
+            rtpPlayPaginationLinks = getRTPPlayPaginationLinksV1(document);
         }
         else if (paginationType === 2) {
-            var rtpPlayPaginationLinks = getRTPPlayPaginationLinksType2(document);
-
-            if (rtpPlayPaginationLinks.length === 0) {
-                alert('No Pagination files found');
-            }
-            else {
-
-                for (var i = 0 ; i < rtpPlayPaginationLinks.length ; i++) {
-
-                    getDocumentPartInUrl(rtpPlayPaginationLinks[i].link, rtpPlayPaginationLinks[i].part, function(part, pdoc) {
-
-                        downloadRTPPlayFromDocument(pdoc, getTabTitle(document) + "." + part);
-                    });
-                }
-            }
+            rtpPlayPaginationLinks = getRTPPlayPaginationLinksV2(document);
         }
-    } else if (type.indexOf('SIC') >= 0) {
-        
+        else {
+            alert('Could not find RTP Pagination files');
+            return
+        }
+
+        if (rtpPlayPaginationLinks.length === 0) {
+            alert('No Pagination files found');
+            return
+        }
+
+        for (var i = 0 ; i < rtpPlayPaginationLinks.length ; i++) {
+
+            getDocumentPartInUrl(rtpPlayPaginationLinks[i].link, rtpPlayPaginationLinks[i].part, function(part, doc) {
+
+                downloadRTPPlayFromDocument(document, getTabTitle(document) + "." + part);
+            });
+        }
+        return
+    } 
+    else if (type.indexOf('SIC') >= 0) {
+
         downloadSICFromDocument(document, getTabTitle(document));
     }
     else {
         alert('No valid file found'); 
     }
 }
+
+/***************************************************************/
+/***************************************************************/
+
+main();
