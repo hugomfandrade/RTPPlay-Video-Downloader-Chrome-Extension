@@ -11,13 +11,36 @@ chrome.contextMenus.create({
 chrome.contextMenus.onClicked.addListener(function(info, tab) {
     if (info.menuItemId === "disable_context_menu_item") {
         chrome.tabs.executeScript(tab.id, {file: "backgroundDatatype.js"});
+        chrome.tabs.executeScript(tab.id, {file: "fetchLinksLib.js"});
         chrome.tabs.executeScript(tab.id, {file: "fetchAllLinks.js"});
     }
 });
     
 chrome.browserAction.onClicked.addListener(function(tab) { 
     chrome.tabs.executeScript(tab.id, {file: "backgroundDatatype.js"});
+    chrome.tabs.executeScript(tab.id, {file: "fetchLinksLib.js"});
     chrome.tabs.executeScript(tab.id, {file: "fetchLinks.js"});
+});
+
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    chrome.tabs.executeScript(null, {
+        code: 'var debugmessage = ' + '"onMessage = ' + request.isValid + ' , ' + request.isEpisodeValid + '"' + ';'
+    }, function() {chrome.tabs.executeScript(null, {file: 'debugMessage.js'});});
+    if (request.MessageType === 'isValid') {
+        if (sender.tab.id === activeTabID) {
+            if (request.isValid === true) {
+                chrome.browserAction.enable(null, function() {  });
+            }
+            else {
+                chrome.browserAction.disable(null, function() { });
+            }
+            
+            chrome.contextMenus.update("disable_context_menu_item", {enabled: request.isEpisodeValid});
+        }
+    }
+    else if (request.MessageType === 'download') {
+        chrome.downloads.download({url: request.link, filename: request.filename},function(id) {});
+    }
 });
 
 chrome.runtime.onInstalled.addListener(function() {
@@ -52,28 +75,6 @@ chrome.management.onEnabled.addListener(function(info) {
         chrome.tabs.executeScript(null, {file: "backgroundDatatype.js"});
         chrome.tabs.executeScript(null, {file: "isValid.js"});
     });
-});
-
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    chrome.tabs.executeScript(null, {
-        code: 'var debugmessage = ' + '"onMessage = ' + request.isValid + ' , ' + request.isEpisodeValid + '"' + ';'
-    }, function() {chrome.tabs.executeScript(null, {file: 'debugMessage.js'});});
-    if (request.MessageType === 'isValid') {
-        if (sender.tab.id === activeTabID) {
-            if (request.isValid === true) {
-                chrome.browserAction.enable(activeTabID, function() {  });
-            }
-            else {
-                chrome.browserAction.disable(activeTabID, function() { });
-            }
-            
-            chrome.contextMenus.update("disable_context_menu_item", {enabled: request.isEpisodeValid});
-            
-        }
-    }
-    else {
-        chrome.downloads.download({url: request.linkSubString, filename: request.filename},function(id) {});
-    }
 });
 
 chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs) {

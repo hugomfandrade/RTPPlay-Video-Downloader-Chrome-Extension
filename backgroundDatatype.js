@@ -17,7 +17,7 @@
     return target.replace(new RegExp(search, 'g'), replacement);
 };
 
-/*export const */ function getDocumentInUrl(url, callback) {
+/*export const */ function getDocumentInUrl(url, callback, part) {
     var xmlhttp;
     if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari
         xmlhttp = new XMLHttpRequest();
@@ -28,25 +28,7 @@
     
     xmlhttp.onreadystatechange=function() {
         if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-            return callback(new DOMParser().parseFromString(xmlhttp.responseText, 'text/html'));
-        }
-    }
-    xmlhttp.open("GET", url, false);
-    xmlhttp.send();
-}
-
-/*export const */ function getDocumentPartInUrl(url, part, callback) {
-    var xmlhttp;
-    if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari
-        xmlhttp = new XMLHttpRequest();
-    }
-    else {// code for IE6, IE5
-        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-    }
-    
-    xmlhttp.onreadystatechange=function() {
-        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-            return callback(part, new DOMParser().parseFromString(xmlhttp.responseText, 'text/html'));
+            return callback(new DOMParser().parseFromString(xmlhttp.responseText, 'text/html'), url, part);
         }
     }
     xmlhttp.open("GET", url, false);

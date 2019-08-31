@@ -39,7 +39,7 @@ function isEpisodeValid(doc) {
 
 function isEpisodeItemValid(episodeItems, it) {
     
-    getDocumentInUrl(window.location.origin + episodeItems[it].getAttribute("href"), function(doc) {
+    getDocumentInUrl(window.location.origin + episodeItems[it].getAttribute("href"), function(doc, url) {
 
         if (isValid(doc) === true) {
             sendIsAllValidMessage(true);
