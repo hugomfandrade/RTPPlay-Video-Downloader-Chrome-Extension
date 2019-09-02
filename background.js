@@ -52,7 +52,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
             chrome.contextMenus.update("download_context_menu_item", {enabled: request.isValid});
             chrome.contextMenus.update("download_all_context_menu_item", {enabled: request.isEpisodeValid});
             
-            setBrowserActionIcon(request.type)
+            setBrowserActionIcon(request.type, request.isValid)
         }
     }
     else if (request.MessageType === 'download') {
@@ -60,47 +60,35 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     }
 });
 
-function setBrowserActionIcon(type) {
+function setBrowserActionIcon(type, isEnabled) {
+    var title = "rtpplay_downloader"
+    
     if (type === undefined || type === "RTPPlay") {
-        chrome.browserAction.setIcon({path: {
-            "16": "images/rtpplay_downloader_16.png",
-            "32": "images/rtpplay_downloader_32.png",
-            "48": "images/rtpplay_downloader_48.png",
-            "128": "images/rtpplay_downloader_128.png"
-        }});
+        title = "rtpplay_downloader"
     }
     else if (type === "SICRadical") {
-        chrome.browserAction.setIcon({path: {
-            "16": "images/sicradical_downloader_16.png",
-            "32": "images/sicradical_downloader_32.png",
-            "48": "images/sicradical_downloader_48.png",
-            "128": "images/sicradical_downloader_128.png"
-        }});
+        title = "sicradical_downloader"
     }
     else if (type === "SICNoticias") {
-        chrome.browserAction.setIcon({path: {
-            "16": "images/sicnoticias_downloader_16.png",
-            "32": "images/sicnoticias_downloader_32.png",
-            "48": "images/sicnoticias_downloader_48.png",
-            "128": "images/sicnoticias_downloader_128.png"
-        }});
+        title = "sicnoticias_downloader"
     }
     else if (type === "SIC") {
-        chrome.browserAction.setIcon({path: {
-            "16": "images/sic_downloader_16.png",
-            "32": "images/sic_downloader_32.png",
-            "48": "images/sic_downloader_48.png",
-            "128": "images/sic_downloader_128.png"
-        }});
+        title = "sic_downloader"
     }
     else {
-        chrome.browserAction.setIcon({path: {
-            "16": "images/rtpplay_downloader_16.png",
-            "32": "images/rtpplay_downloader_32.png",
-            "48": "images/rtpplay_downloader_48.png",
-            "128": "images/rtpplay_downloader_128.png"
-        }});
+        title = "rtpplay_downloader"
     }
+    
+    if (isEnabled === false) {
+        title = title + "_disabled"
+    }
+    
+    chrome.browserAction.setIcon({path: {
+        "16": "images/" + title + "_16.png",
+        "32": "images/" + title + "_32.png",
+        "48": "images/" + title + "_48.png",
+        "128": "images/" + title + "_128.png"
+    }});
 }
 
 chrome.runtime.onInstalled.addListener(function() {
