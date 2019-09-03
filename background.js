@@ -1,12 +1,14 @@
 var activeTabID;
 var activeWindowID;
+var dbg = false
 
 chrome.contextMenus.removeAll();
-/*chrome.contextMenus.create({
-    id: "download_context_menu_item",
-    title: "Download",
-    contexts: ["browser_action"]
-});*/
+if (dbg === true) {
+    chrome.contextMenus.create({
+        id: "download_context_menu_item",
+        title: "Download",
+        contexts: ["browser_action"]
+});
 chrome.contextMenus.create({
     id: "download_all_context_menu_item",
     title: "Download all",
@@ -14,6 +16,11 @@ chrome.contextMenus.create({
 });
 
 chrome.contextMenus.onClicked.addListener(function(info, tab) {
+    if (dbg === true) {
+        chrome.tabs.executeScript(null, {
+            code: 'var debugmessage = ' + '"contextMenus.onClicked"' + ';'
+        }, function() {chrome.tabs.executeScript(null, {file: 'debugMessage.js'});});
+    }
     if (info.menuItemId === "download_all_context_menu_item") {
         chrome.tabs.executeScript(tab.id, {file: "backgroundDatatype.js"});
         chrome.tabs.executeScript(tab.id, {file: "fetchLinksLib.js"});
@@ -27,6 +34,11 @@ chrome.contextMenus.onClicked.addListener(function(info, tab) {
 });
     
 chrome.browserAction.onClicked.addListener(function(tab) { 
+    if (dbg === true) {
+        chrome.tabs.executeScript(null, {
+            code: 'var debugmessage = ' + '"browserAction.onClicked"' + ';'
+        }, function() {chrome.tabs.executeScript(null, {file: 'debugMessage.js'});});
+    }
     chrome.tabs.executeScript(tab.id, {file: "backgroundDatatype.js"});
     chrome.tabs.executeScript(tab.id, {file: "fetchLinksLib.js"});
     chrome.tabs.executeScript(tab.id, {file: "fetchLinks.js"});
@@ -36,9 +48,11 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     
     if (request.MessageType === 'isValid') {
     
-        /*chrome.tabs.executeScript(null, {
-            code: 'var debugmessage = ' + '"onMessage = ' + request.isValid + ' , ' + request.isEpisodeValid + '"' + ';'
-        }, function() {chrome.tabs.executeScript(null, {file: 'debugMessage.js'});});*/
+        if (dbg === true) {
+            chrome.tabs.executeScript(null, {
+                code: 'var debugmessage = ' + '"onMessage = ' + request.isValid + ' , ' + request.isEpisodeValid + '"' + ';'
+            }, function() {chrome.tabs.executeScript(null, {file: 'debugMessage.js'});});
+        }
 
         if (sender.tab.id === activeTabID) {
             
@@ -82,6 +96,7 @@ function setBrowserActionIcon(type, isItemValid, isPaginationValid) {
     if (isItemValid === false && isPaginationValid === false) {
         title = title + "_disabled"
     }
+   title = "rtpplay_downloader"
     
     chrome.browserAction.setIcon({path: {
         "16": "images/" + title + "_16.png",
@@ -92,27 +107,32 @@ function setBrowserActionIcon(type, isItemValid, isPaginationValid) {
 }
 
 chrome.runtime.onInstalled.addListener(function() {
+    if (dbg === true) {
+        chrome.tabs.executeScript(null, {
+            code: 'var debugmessage = ' + '"runtime.onInstalled"' + ';'
+        }, function() {chrome.tabs.executeScript(null, {file: 'debugMessage.js'});});
+    }
     
-    chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
+    /*chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
         chrome.declarativeContent.onPageChanged.addRules([{
             conditions: [new chrome.declarativeContent.PageStateMatcher({
                 pageUrl: {hostEquals: 'developer.chrome.com'},
             })],
             actions: [new chrome.declarativeContent.ShowPageAction()]
         }]);
-    });
+    });*/
 
-    chrome.browserAction.disable(null, function() { 
-        chrome.tabs.executeScript(null, {file: "backgroundDatatype.js"});
-        chrome.tabs.executeScript(null, {file: "isValid.js"});
+    chrome.browserAction.disable(activeTabID, function() { 
+        chrome.tabs.executeScript(activeTabID, {file: "backgroundDatatype.js"});
+        chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
     });
     chrome.contextMenus.update("disable_context_menu_item", {enabled: false}, function() {
-        chrome.tabs.executeScript(null, {file: "backgroundDatatype.js"});
-        chrome.tabs.executeScript(null, {file: "isValid.js"});
+        chrome.tabs.executeScript(activeTabID, {file: "backgroundDatatype.js"});
+        chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
     });
 });
 
-chrome.management.onEnabled.addListener(function(info) {
+/*chrome.management.onEnabled.addListener(function(info) {
     //console.log(JSON.stringify(info));
 
     chrome.browserAction.disable(null, function() { 
@@ -123,14 +143,24 @@ chrome.management.onEnabled.addListener(function(info) {
         chrome.tabs.executeScript(null, {file: "backgroundDatatype.js"});
         chrome.tabs.executeScript(null, {file: "isValid.js"});
     });
-});
+});*/
 
 chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs) {
     if (tabs[0].active) {
         activeTabID = tabs[0].id;
     }
+    if (dbg === true) {
+        chrome.tabs.executeScript(null, {
+            code: 'var debugmessage = ' + '"tabs.query"' + ';'
+        }, function() {chrome.tabs.executeScript(null, {file: 'debugMessage.js'});});
+    }
     
     chrome.tabs.onCreated.addListener(function(tab) {
+        if (dbg === true) {
+            chrome.tabs.executeScript(null, {
+                code: 'var debugmessage = ' + '"tabs.onCreated"' + ';'
+            }, function() {chrome.tabs.executeScript(null, {file: 'debugMessage.js'});});
+        }
         
         if (tab.id === activeTabID) {
             chrome.browserAction.disable(activeTabID, function() { 
@@ -138,13 +168,17 @@ chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs) {
                 chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
             });
             chrome.contextMenus.update("disable_context_menu_item", {enabled: false}, function() {
-                chrome.tabs.executeScript(null, {file: "backgroundDatatype.js"});
-                chrome.tabs.executeScript(null, {file: "isValid.js"});
+                chrome.tabs.executeScript(activeTabID, {file: "backgroundDatatype.js"});
+                chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
             });
         }
     });
     chrome.tabs.onActivated.addListener(function(activeInfo) {
-        //chrome.tabs.executeScript(null, {file: "debug.js"});
+        if (dbg === true) {
+            chrome.tabs.executeScript(null, {
+                code: 'var debugmessage = ' + '"tabs.onActivated"' + ';'
+            }, function() {chrome.tabs.executeScript(null, {file: 'debugMessage.js'});});
+        }
         
         chrome.tabs.get(activeInfo.tabId, function(tab) { 
             if (tab.active) {
@@ -155,14 +189,20 @@ chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs) {
                     chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
                 });
                 chrome.contextMenus.update("disable_context_menu_item", {enabled: false}, function() {
-                    chrome.tabs.executeScript(null, {file: "backgroundDatatype.js"});
-                    chrome.tabs.executeScript(null, {file: "isValid.js"});
+                    chrome.tabs.executeScript(activeTabID, {file: "backgroundDatatype.js"});
+                    chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
                 });
             }
         });
     });
 
     chrome.tabs.onUpdated.addListener(function (tabId, info, tab) {
+        if (dbg === true) {
+            chrome.tabs.executeScript(null, {
+                code: 'var debugmessage = ' + '"tabs.onUpdated"' + ';'
+            }, function() {chrome.tabs.executeScript(null, {file: 'debugMessage.js'});});
+        }
+        
         if (tab.active) {
             activeTabID = tab.id;
         }
