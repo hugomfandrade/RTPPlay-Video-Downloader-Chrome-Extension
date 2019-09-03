@@ -2,11 +2,11 @@ var activeTabID;
 var activeWindowID;
 
 chrome.contextMenus.removeAll();
-chrome.contextMenus.create({
+/*chrome.contextMenus.create({
     id: "download_context_menu_item",
     title: "Download",
     contexts: ["browser_action"]
-});
+});*/
 chrome.contextMenus.create({
     id: "download_all_context_menu_item",
     title: "Download all",
@@ -36,9 +36,9 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     
     if (request.MessageType === 'isValid') {
     
-        chrome.tabs.executeScript(null, {
+        /*chrome.tabs.executeScript(null, {
             code: 'var debugmessage = ' + '"onMessage = ' + request.isValid + ' , ' + request.isEpisodeValid + '"' + ';'
-        }, function() {chrome.tabs.executeScript(null, {file: 'debugMessage.js'});});
+        }, function() {chrome.tabs.executeScript(null, {file: 'debugMessage.js'});});*/
 
         if (sender.tab.id === activeTabID) {
             
@@ -52,7 +52,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
             chrome.contextMenus.update("download_context_menu_item", {enabled: request.isValid});
             chrome.contextMenus.update("download_all_context_menu_item", {enabled: request.isEpisodeValid});
             
-            setBrowserActionIcon(request.type, request.isValid)
+            setBrowserActionIcon(request.type, request.isValid, request.isEpisodeValid)
         }
     }
     else if (request.MessageType === 'download') {
@@ -60,7 +60,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     }
 });
 
-function setBrowserActionIcon(type, isEnabled) {
+function setBrowserActionIcon(type, isItemValid, isPaginationValid) {
     var title = "rtpplay_downloader"
     
     if (type === undefined || type === "RTPPlay") {
@@ -79,7 +79,7 @@ function setBrowserActionIcon(type, isEnabled) {
         title = "rtpplay_downloader"
     }
     
-    if (isEnabled === false) {
+    if (isItemValid === false && isPaginationValid === false) {
         title = title + "_disabled"
     }
     

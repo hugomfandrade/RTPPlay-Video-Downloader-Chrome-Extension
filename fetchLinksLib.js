@@ -10,8 +10,6 @@
 
 function download(link, filename) {
     
-    //console.log('filename = ' + filename);
-    //console.log('link = ' + link);
     chrome.runtime.sendMessage({MessageType: 'download', link: link, filename: filename}, function(response) { });
 }
 
