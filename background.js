@@ -1,6 +1,6 @@
 var activeTabID;
 var activeWindowID;
-var dbg = false
+var dbg = false;
 
 chrome.contextMenus.removeAll();
 if (dbg === true) {
@@ -8,7 +8,8 @@ if (dbg === true) {
         id: "download_context_menu_item",
         title: "Download",
         contexts: ["browser_action"]
-});
+    });
+}
 chrome.contextMenus.create({
     id: "download_all_context_menu_item",
     title: "Download all",
@@ -92,11 +93,12 @@ function setBrowserActionIcon(type, isItemValid, isPaginationValid) {
     else {
         title = "rtpplay_downloader"
     }
+   
+    title = "rtpplay_downloader"
     
     if (isItemValid === false && isPaginationValid === false) {
         title = title + "_disabled"
     }
-   title = "rtpplay_downloader"
     
     chrome.browserAction.setIcon({path: {
         "16": "images/" + title + "_16.png",
@@ -112,15 +114,6 @@ chrome.runtime.onInstalled.addListener(function() {
             code: 'var debugmessage = ' + '"runtime.onInstalled"' + ';'
         }, function() {chrome.tabs.executeScript(null, {file: 'debugMessage.js'});});
     }
-    
-    /*chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
-        chrome.declarativeContent.onPageChanged.addRules([{
-            conditions: [new chrome.declarativeContent.PageStateMatcher({
-                pageUrl: {hostEquals: 'developer.chrome.com'},
-            })],
-            actions: [new chrome.declarativeContent.ShowPageAction()]
-        }]);
-    });*/
 
     chrome.browserAction.disable(activeTabID, function() { 
         chrome.tabs.executeScript(activeTabID, {file: "backgroundDatatype.js"});
@@ -131,19 +124,6 @@ chrome.runtime.onInstalled.addListener(function() {
         chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
     });
 });
-
-/*chrome.management.onEnabled.addListener(function(info) {
-    //console.log(JSON.stringify(info));
-
-    chrome.browserAction.disable(null, function() { 
-        chrome.tabs.executeScript(null, {file: "backgroundDatatype.js"});
-        chrome.tabs.executeScript(null, {file: "isValid.js"});
-    });
-    chrome.contextMenus.update("disable_context_menu_item", {enabled: false}, function() {
-        chrome.tabs.executeScript(null, {file: "backgroundDatatype.js"});
-        chrome.tabs.executeScript(null, {file: "isValid.js"});
-    });
-});*/
 
 chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs) {
     if (tabs[0].active) {
