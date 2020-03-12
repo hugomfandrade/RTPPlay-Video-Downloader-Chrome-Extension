@@ -9,6 +9,9 @@
 /***********************/
 
 function download(link, filename) {
+            
+    // console.log("filename = " + filename)
+    // console.log("link = " + link)
     
     chrome.runtime.sendMessage({MessageType: 'download', link: link, filename: filename}, function(response) { });
 }
@@ -28,17 +31,57 @@ function downloadRTPPlayFromDocument(doc, filename) {
 
         for (var i = 0 ; i < rtpPlayFileLinks.length ; i++) {
 
-            var link = rtpPlayFileLinks[i];
+            var link = rtpPlayFileLinks[i];            
+            var baseLink = link.substr(0, link.lastIndexOf("/")) + "/"
+            
+            // console.log("link = " + link)
+            // console.log("baseLink = " + baseLink)
 
-            if (link.indexOf('.mp4') >= 0) { // is video file
-                filename = filename + ".mp4";
+            if (link.indexOf('.m3u8') >= 0) { // is video file
+                // 
+                // 
+                // filename = filename + ".mp4";
+     
+                getFileInUrl(link, function(m3u8, url) {
+                    filename = filename + ".ts";
+                    
+                    var lines = m3u8.split('\n');
+                    var tsLinks = []
+                    
+                    for (var i = 0; i < lines.length; i++){
+                        var line = lines[i];
+                        if (line.endsWith(".ts")) {
+                            tsLinks.push(baseLink + line)
+                        }
+                    }
+                    
+                    var downloadedFiles = 0
+                    for (var i = 0; i < tsLinks.length; i++){
+                        var tsLink = tsLinks[i];
+                        
+                        
+                        getTSInUrl(tsLink, function(c, url, i) {
+                            downloadedFiles = downloadedFiles + 1
+                            console.log("got of (" + i + ")" + url + " - " + tsLinks.length + " , " + downloadedFiles)
+                            
+                            tsLinks[i] = c;
+                            
+                            if (downloadedFiles == tsLinks.length) {
+                                console.log("downloading")
+                                
+                                var blob = new Blob(tsLinks, {type: 'video/mp4'});
+                                var url = URL.createObjectURL(blob);
+                                download(url, filename);
+                            }
+                        }, i)
+                    }
+                });
 
             }
             else if (link.indexOf('.mp3') >= 0) { // is audio file
                 filename = filename + ".mp3";
+                download(link, filename);
             }
-
-            download(link, filename);
         }
     }
 }
@@ -169,6 +212,7 @@ function getRTPPlayPaginationLinksV2(doc, url) {
                     var spans = itemElem[m].getElementsByTagName("span");
                     
                     for (var n = 0 ; n < spans.length ; n++) {
+                        console.log("url = " + url);
                         rtpPlayLinks.push({
                             link: url,
                             part: "P" + spans[n].innerHTML.replaceAll('Parte',' ').replaceAll('PARTE',' ').replace(/\s/g, '')
@@ -180,6 +224,7 @@ function getRTPPlayPaginationLinksV2(doc, url) {
                     for (var n = 0 ; n < items.length ; n++) {
 
                         if (items[n].getAttribute("href") !== undefined) {
+                            console.log("url n = " + window.location.origin + items[n].getAttribute("href"));
                             rtpPlayLinks.push({
                                 link: window.location.origin + items[n].getAttribute("href"),
                                 part: "P" + items[n].innerHTML.replaceAll('Parte',' ').replaceAll('PARTE',' ').replace(/\s/g, '')
@@ -208,7 +253,7 @@ function getRTPPlayFileLinks(doc) {
         
         for (var i = 0 ; i < scriptTags.length ; i++) {
             
-            var link = getRTPPlayLinkFromScript(scriptTags[i].text);
+            var link = getRTPPlayLinkFromScriptV2(scriptTags[i].text);
     
             if (link !== undefined) {
                 rtpPlayLinks.push(link);

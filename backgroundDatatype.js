@@ -34,6 +34,43 @@
     xmlhttp.open("GET", url, false);
     xmlhttp.send();
 }
+    
+/*export const */ function getFileInUrl(url, callback) {
+    var xmlhttp;
+    if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari
+        xmlhttp = new XMLHttpRequest();
+    }
+    else {// code for IE6, IE5
+        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+    
+    xmlhttp.onreadystatechange=function() {
+        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+            return callback(xmlhttp.responseText, url);
+        }
+    }
+    xmlhttp.open("GET", url, false);
+    xmlhttp.send();
+}
+    
+/*export const */ function getTSInUrl(url, callback, index) {
+    var xmlhttp;
+    if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari
+        xmlhttp = new XMLHttpRequest();
+    }
+    else {// code for IE6, IE5
+        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+    
+    xmlhttp.onreadystatechange=function() {
+        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+            return callback(xmlhttp.response, url, index);
+        }
+    }
+    xmlhttp.open("GET", url, true);
+    xmlhttp.responseType = "arraybuffer"
+    xmlhttp.send();
+}
 
 /*export const */ function getTabTitle(doc) {
     return doc.getElementsByTagName('title')[0].text
@@ -133,6 +170,7 @@
 /***    RTP Play    ****/
 /***********************/
 
+// Deprecated
 /*export const */ function getRTPPlayLinkFromScript(scriptText) {
     if (scriptText === undefined || 
         scriptText.length === 0 || 
@@ -168,8 +206,47 @@
     return undefined;
 }
 
+/*export const */ function getRTPPlayLinkFromScriptV2(scriptText) {
+    if (scriptText === undefined || 
+        scriptText.length === 0 || 
+        scriptText.indexOf('RTPPlayer({') < 0) {
+        return undefined;
+    }
+    
+    var mediaType = scriptText.substr(
+                scriptText.indexOfEx('mediaType: \"'), 
+                scriptText.substr(scriptText.indexOfEx('mediaType: \"')).indexOf('\",'));
+    
+    var rtpPlayerSubString = scriptText.substring(scriptText.indexOfEx('RTPPlayer({'), scriptText.lastIndexOf('})'));
+    
+    if (mediaType.indexOf('video') >= 0) {  // is video file
+        
+        if (rtpPlayerSubString.indexOf('file : \"') >= 0) {
+            
+            var link = rtpPlayerSubString.substr(
+                rtpPlayerSubString.indexOfEx('file : \"'), 
+                rtpPlayerSubString.substr(rtpPlayerSubString.indexOfEx('file : \"')).indexOf('\",'));
+            
+            return link;
+        }
+        
+    }
+    else if (mediaType.indexOf('audio') >= 0) { // is audio file
+
+        if (rtpPlayerSubString.indexOf('file : \"') >= 0) {
+
+            return rtpPlayerSubString.substr(
+                rtpPlayerSubString.indexOfEx('file : \"'), 
+                rtpPlayerSubString.substr(rtpPlayerSubString.indexOfEx('file : \"')).indexOf('\",'));
+            
+        }
+    }
+    
+    return undefined;
+}
+
 /*export const */ function isValidRTPPlayScript(scriptText) {
-    var link = getRTPPlayLinkFromScript(scriptText);
+    var link = getRTPPlayLinkFromScriptV2(scriptText);
     
     if (link === undefined) {
         return false;
