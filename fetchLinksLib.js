@@ -32,8 +32,14 @@ function downloadRTPPlayFromDocument(doc, filename) {
         for (var i = 0 ; i < rtpPlayFileLinks.length ; i++) {
 
             var link = rtpPlayFileLinks[i];            
-            var baseLink = link.substr(0, link.lastIndexOf("/")) + "/"
             
+            if (true) {
+                filename = filename + ".mp4";
+                download(link, filename);
+                return
+            }
+            
+            var baseLink = link.substr(0, link.lastIndexOf("/")) + "/"
             // console.log("link = " + link)
             // console.log("baseLink = " + baseLink)
 
@@ -56,20 +62,24 @@ function downloadRTPPlayFromDocument(doc, filename) {
                     }
                     
                     var downloadedFiles = 0
+                    var tsFiles = []
+                    var b = new Uint8Array()
                     for (var i = 0; i < tsLinks.length; i++){
                         var tsLink = tsLinks[i];
                         
                         
                         getTSInUrl(tsLink, function(c, url, i) {
                             downloadedFiles = downloadedFiles + 1
-                            console.log("got of (" + i + ")" + url + " - " + tsLinks.length + " , " + downloadedFiles)
+                            // console.log("got of (" + i + ") " + url + " - " + tsLinks.length + " , " + downloadedFiles)
+    
+                            chrome.runtime.sendMessage({MessageType: 'parsing-progress', Downloaded: downloadedFiles, Total: tsLinks.length}, function(response) { });
                             
-                            tsLinks[i] = c;
+                            tsFiles.push(c);
                             
                             if (downloadedFiles == tsLinks.length) {
-                                console.log("downloading")
-                                
-                                var blob = new Blob(tsLinks, {type: 'video/mp4'});
+                                // console.log("downloading")
+                                // console.log(tsFiles)
+                                var blob = new Blob(tsFiles, {type: 'video/mp4'});
                                 var url = URL.createObjectURL(blob);
                                 download(url, filename);
                             }
@@ -253,7 +263,7 @@ function getRTPPlayFileLinks(doc) {
         
         for (var i = 0 ; i < scriptTags.length ; i++) {
             
-            var link = getRTPPlayLinkFromScriptV2(scriptTags[i].text);
+            var link = getRTPPlayLinkFromScriptV3(scriptTags[i].text);
     
             if (link !== undefined) {
                 rtpPlayLinks.push(link);

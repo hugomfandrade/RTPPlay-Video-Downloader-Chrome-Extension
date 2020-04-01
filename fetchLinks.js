@@ -9,6 +9,9 @@ function main() {
     var isOk = isValid(document);
 
     if (isOk === false) {
+        
+        needsParsing(false)
+        
         alert('No file found');
         return
     }
@@ -17,18 +20,28 @@ function main() {
 
     if (type === 'RTPPlay') {
         
+        needsParsing(false)
+        
         downloadEntireRTPPlayFromDocument(document, window.location.href)
         return
     } 
     else if (type.indexOf('SIC') >= 0) {
+        
+        needsParsing(false)
 
         downloadSICFromDocument(document, getTabTitle(document));
         return
     }
     else {
+        
         alert('No valid file found'); 
         return
     }
+}
+
+function needsParsing(isNeeded) {
+    
+    chrome.runtime.sendMessage({MessageType: 'parsing', IsNeeded: isNeeded}, function(response) { });
 }
 
 /***************************************************************/

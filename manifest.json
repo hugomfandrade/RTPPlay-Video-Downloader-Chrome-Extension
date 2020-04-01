@@ -1,12 +1,14 @@
 {
     "name": "RTP Play Downloader",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "description": "Download RTP Play videos",
-    "permissions": [
-                    "activeTab", 
-                    "downloads", 
-                    "<all_urls>",
-                    "contextMenus"
+    "permissions": ["downloads",
+                    "contextMenus", 
+                    "*://www.rtp.pt/*",
+                    "*://rtp.pt/*",
+                    "*://sic.pt/*",
+                    "*://sicradical.pt/*",
+                    "*://sicnoticias.pt/*"
                    ],
     "background": {
         "scripts": [
@@ -25,7 +27,8 @@
             "32": "images/rtpplay_downloader_32.png",
             "48": "images/rtpplay_downloader_48.png",
             "128": "images/rtpplay_downloader_128.png"
-        }
+        },
+        "default_popup": "popup.html"
     },
     "manifest_version": 2
 }

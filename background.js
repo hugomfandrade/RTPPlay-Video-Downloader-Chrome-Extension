@@ -33,8 +33,8 @@ chrome.contextMenus.onClicked.addListener(function(info, tab) {
         chrome.tabs.executeScript(tab.id, {file: "fetchLinks.js"});
     }
 });
-    
-chrome.browserAction.onClicked.addListener(function(tab) { 
+
+chrome.browserAction.onClicked.addListener(function(tab) {
     if (dbg === true) {
         chrome.tabs.executeScript(null, {
             code: 'var debugmessage = ' + '"browserAction.onClicked"' + ';'
@@ -71,7 +71,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         }
     }
     else if (request.MessageType === 'download') {
-        chrome.downloads.download({url: request.link, filename: request.filename},function(id) {});
+        chrome.downloads.download({url: request.link, filename: request.filename}, function(id) {});
     }
 });
 
@@ -119,10 +119,12 @@ chrome.runtime.onInstalled.addListener(function() {
         chrome.tabs.executeScript(activeTabID, {file: "backgroundDatatype.js"});
         chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
     });
-    chrome.contextMenus.update("disable_context_menu_item", {enabled: false}, function() {
-        chrome.tabs.executeScript(activeTabID, {file: "backgroundDatatype.js"});
-        chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
-    });
+    if (dbg === true) {
+        chrome.contextMenus.update("disable_context_menu_item", {enabled: false}, function() {
+            chrome.tabs.executeScript(activeTabID, {file: "backgroundDatatype.js"});
+            chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
+        });
+    }
 });
 
 chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs) {
@@ -134,6 +136,11 @@ chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs) {
             code: 'var debugmessage = ' + '"tabs.query"' + ';'
         }, function() {chrome.tabs.executeScript(null, {file: 'debugMessage.js'});});
     }
+    
+    chrome.browserAction.disable(activeTabID, function() { 
+        chrome.tabs.executeScript(activeTabID, {file: "backgroundDatatype.js"});
+        chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
+    });
     
     chrome.tabs.onCreated.addListener(function(tab) {
         if (dbg === true) {
@@ -147,10 +154,12 @@ chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs) {
                 chrome.tabs.executeScript(activeTabID, {file: "backgroundDatatype.js"});
                 chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
             });
-            chrome.contextMenus.update("disable_context_menu_item", {enabled: false}, function() {
-                chrome.tabs.executeScript(activeTabID, {file: "backgroundDatatype.js"});
-                chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
-            });
+            if (dbg === true) {
+                chrome.contextMenus.update("disable_context_menu_item", {enabled: false}, function() {
+                    chrome.tabs.executeScript(activeTabID, {file: "backgroundDatatype.js"});
+                    chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
+                });
+            }
         }
     });
     chrome.tabs.onActivated.addListener(function(activeInfo) {
@@ -168,10 +177,12 @@ chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs) {
                     chrome.tabs.executeScript(activeTabID, {file: "backgroundDatatype.js"});
                     chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
                 });
-                chrome.contextMenus.update("disable_context_menu_item", {enabled: false}, function() {
-                    chrome.tabs.executeScript(activeTabID, {file: "backgroundDatatype.js"});
-                    chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
-                });
+                if (dbg === true) {
+                    chrome.contextMenus.update("disable_context_menu_item", {enabled: false}, function() {
+                        chrome.tabs.executeScript(activeTabID, {file: "backgroundDatatype.js"});
+                        chrome.tabs.executeScript(activeTabID, {file: "isValid.js"});
+                    });
+                }
             }
         });
     });
