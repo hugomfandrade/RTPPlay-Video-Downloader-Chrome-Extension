@@ -5,11 +5,11 @@ var isDownloading = false
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     
+
     if (request.MessageType === 'parsing') {
-    
-        // chrome.tabs.executeScript(null, {
-        //     code: 'var debugmessage = ' + '"onMessage = ' + request.MessageType + ' , ' + request.IsNeeded + '"' + ';'
-        // }, function() {chrome.tabs.executeScript(null, {file: 'debugMessage.js'});});
+
+        // debug(request.MessageType + ' , ' + request.IsNeeded)
+
         if (request.IsNeeded === true) {
             
         }
@@ -21,9 +21,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     
     else if (request.MessageType === 'parsing-progress') {
         
-        chrome.tabs.executeScript(null, {
-            code: 'var debugmessage = ' + '"onMessage = ' + request.MessageType + ' , ' + request.Downloaded + ' , ' + request.Total + '"' + ';'
-        }, function() {chrome.tabs.executeScript(null, {file: 'debugMessage.js'});});
+        // debug(request.MessageType + ' , ' + request.Downloaded + ' , ' + request.Total);
         
         var downloaded = request.Downloaded
         var total = request.Total
@@ -32,6 +30,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         currentDownloaded = downloaded
         currentTotal = total
         
+        document.getElementById('download-percentage').innerHTML  = progress.toFixed(0) + '%';
         document.getElementById('progress').value = progress;
         
         
@@ -40,12 +39,16 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
             window.close()
         }
         else {
+            document.getElementById('download-percentage').innerHTML  = progress.toFixed(0) + '%';
             document.getElementById('progress').value = progress;
         }
     }
 });
 
 chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+    
+    // debug('query = ' + isDownloading)
+
     var tab = tabs[0];
     currentTab = tab; // used in later calls to get tab info
     
@@ -56,6 +59,7 @@ chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
         if (total > 0) {
             var progress = downloaded * 100 / total
 
+            document.getElementById('download-percentage').innerHTML  = progress.toFixed(0) + '%';
             document.getElementById('progress').value = progress;
         }
         
@@ -68,3 +72,10 @@ chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
     chrome.tabs.executeScript(tab.id, {file: "fetchLinksLib.js"});
     chrome.tabs.executeScript(tab.id, {file: "fetchLinks.js"});
 });
+
+function debug(message) {
+    
+    chrome.tabs.executeScript(null, {
+        code: 'var debugmessage = ' + '"onMessage = ' + message + '"' + ';'
+   }, function() {chrome.tabs.executeScript(null, {file: 'debugMessage.js'});});
+}

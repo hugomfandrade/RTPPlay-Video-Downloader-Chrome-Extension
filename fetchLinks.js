@@ -20,7 +20,7 @@ function main() {
 
     if (type === 'RTPPlay') {
         
-        needsParsing(false)
+        needsParsing(true)
         
         downloadEntireRTPPlayFromDocument(document, window.location.href)
         return

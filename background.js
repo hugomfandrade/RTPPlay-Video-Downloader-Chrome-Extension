@@ -10,11 +10,13 @@ if (dbg === true) {
         contexts: ["browser_action"]
     });
 }
-chrome.contextMenus.create({
-    id: "download_all_context_menu_item",
-    title: "Download all",
-    contexts: ["browser_action"]
-});
+if (false) {
+    chrome.contextMenus.create({
+        id: "download_all_context_menu_item",
+        title: "Download all",
+        contexts: ["browser_action"]
+    });
+}
 
 chrome.contextMenus.onClicked.addListener(function(info, tab) {
     if (dbg === true) {
@@ -34,16 +36,17 @@ chrome.contextMenus.onClicked.addListener(function(info, tab) {
     }
 });
 
-chrome.browserAction.onClicked.addListener(function(tab) {
+/*chrome.browserAction.onClicked.addListener(function(tab) {
     if (dbg === true) {
         chrome.tabs.executeScript(null, {
             code: 'var debugmessage = ' + '"browserAction.onClicked"' + ';'
         }, function() {chrome.tabs.executeScript(null, {file: 'debugMessage.js'});});
     }
+    debug('browserAction.onClicked')
     chrome.tabs.executeScript(tab.id, {file: "backgroundDatatype.js"});
     chrome.tabs.executeScript(tab.id, {file: "fetchLinksLib.js"});
     chrome.tabs.executeScript(tab.id, {file: "fetchLinks.js"});
-});
+});*/
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     
@@ -210,3 +213,10 @@ chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs) {
     });
     
 });
+
+function debug(message) {
+    
+    chrome.tabs.executeScript(null, {
+        code: 'var debugmessage = ' + '"' + message + '"' + ';'
+   }, function() {chrome.tabs.executeScript(null, {file: 'debugMessage.js'});});
+}

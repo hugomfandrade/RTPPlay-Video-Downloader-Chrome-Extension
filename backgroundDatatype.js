@@ -205,42 +205,6 @@
     
     return undefined;
 }
-    
-// Deprecated
-/*export const */ function getRTPPlayLinkFromScriptV3(scriptText) {
-    if (scriptText === undefined || 
-        scriptText.length === 0 || 
-        scriptText.indexOf('RTPPlayer({') < 0) {
-        return undefined;
-    }
-    
-    var rtpPlayerSubString = scriptText.substring(scriptText.indexOfEx('RTPPlayer({'), scriptText.lastIndexOf('})'));
-    
-    if (rtpPlayerSubString.indexOf('.mp4') >= 0) {  // is video file
-        
-        if (rtpPlayerSubString.indexOf('fileKey: \"') >= 0) {
-            
-            var link = rtpPlayerSubString.substr(
-                rtpPlayerSubString.indexOfEx('fileKey: \"'), 
-                rtpPlayerSubString.substr(rtpPlayerSubString.indexOfEx('fileKey: \"')).indexOf('\",'));
-            
-            return "https://streaming-ondemand.rtp.pt/" + link;
-        }
-        
-    }
-    else if (rtpPlayerSubString.indexOf('.mp3') >= 0) { // is audio file
-
-        if (rtpPlayerSubString.indexOf('file: \"') >= 0) {
-
-            return rtpPlayerSubString.substr(
-                rtpPlayerSubString.indexOfEx('file: \"'), 
-                rtpPlayerSubString.substr(rtpPlayerSubString.indexOfEx('file: \"')).indexOf('\",'));
-            
-        }
-    }
-    
-    return undefined;
-}
 
 /*export const */ function getRTPPlayLinkFromScriptV2(scriptText) {
     if (scriptText === undefined || 
@@ -274,6 +238,42 @@
             return rtpPlayerSubString.substr(
                 rtpPlayerSubString.indexOfEx('file : \"'), 
                 rtpPlayerSubString.substr(rtpPlayerSubString.indexOfEx('file : \"')).indexOf('\",'));
+            
+        }
+    }
+    
+    return undefined;
+}
+    
+// Deprecated
+/*export const */ function getRTPPlayLinkFromScriptV3(scriptText) {
+    if (scriptText === undefined || 
+        scriptText.length === 0 || 
+        scriptText.indexOf('RTPPlayer({') < 0) {
+        return undefined;
+    }
+    
+    var rtpPlayerSubString = scriptText.substring(scriptText.indexOfEx('RTPPlayer({'), scriptText.lastIndexOf('})'));
+    
+    if (rtpPlayerSubString.indexOf('.mp4') >= 0) {  // is video file
+        
+        if (rtpPlayerSubString.indexOf('fileKey: \"') >= 0) {
+            
+            var link = rtpPlayerSubString.substr(
+                rtpPlayerSubString.indexOfEx('fileKey: \"'), 
+                rtpPlayerSubString.substr(rtpPlayerSubString.indexOfEx('fileKey: \"')).indexOf('\",'));
+            
+            return "https://streaming-ondemand.rtp.pt/" + link;
+        }
+        
+    }
+    else if (rtpPlayerSubString.indexOf('.mp3') >= 0) { // is audio file
+
+        if (rtpPlayerSubString.indexOf('file: \"') >= 0) {
+
+            return rtpPlayerSubString.substr(
+                rtpPlayerSubString.indexOfEx('file: \"'), 
+                rtpPlayerSubString.substr(rtpPlayerSubString.indexOfEx('file: \"')).indexOf('\",'));
             
         }
     }

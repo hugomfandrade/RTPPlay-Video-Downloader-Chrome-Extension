@@ -24,6 +24,9 @@ function downloadRTPPlayFromDocument(doc, filename) {
     
     var rtpPlayFileLinks = getRTPPlayFileLinks(doc);
 
+    // console.log("links ")
+    // console.log(rtpPlayFileLinks)
+
     if (rtpPlayFileLinks.length === 0) {
         alert('No RTPPlayer file found');
     }
@@ -31,13 +34,7 @@ function downloadRTPPlayFromDocument(doc, filename) {
 
         for (var i = 0 ; i < rtpPlayFileLinks.length ; i++) {
 
-            var link = rtpPlayFileLinks[i];            
-            
-            if (true) {
-                filename = filename + ".mp4";
-                download(link, filename);
-                return
-            }
+            var link = rtpPlayFileLinks[i];           
             
             var baseLink = link.substr(0, link.lastIndexOf("/")) + "/"
             // console.log("link = " + link)
@@ -60,6 +57,9 @@ function downloadRTPPlayFromDocument(doc, filename) {
                             tsLinks.push(baseLink + line)
                         }
                     }
+
+                    // DEBUG
+                    // tsLinks = tsLinks.slice(0, 30)
                     
                     var downloadedFiles = 0
                     var tsFiles = []
@@ -70,7 +70,7 @@ function downloadRTPPlayFromDocument(doc, filename) {
                         
                         getTSInUrl(tsLink, function(c, url, i) {
                             downloadedFiles = downloadedFiles + 1
-                            // console.log("got of (" + i + ") " + url + " - " + tsLinks.length + " , " + downloadedFiles)
+                            // console.log("got " + downloadedFiles + "/" + tsLinks.length + " (" + i + ") - " + url)
     
                             chrome.runtime.sendMessage({MessageType: 'parsing-progress', Downloaded: downloadedFiles, Total: tsLinks.length}, function(response) { });
                             
@@ -87,6 +87,10 @@ function downloadRTPPlayFromDocument(doc, filename) {
                     }
                 });
 
+            }
+            else if (link.indexOf('.mp4') >= 0) { // is video file
+                filename = filename + ".mp4";
+                download(link, filename);
             }
             else if (link.indexOf('.mp3') >= 0) { // is audio file
                 filename = filename + ".mp3";
@@ -263,7 +267,8 @@ function getRTPPlayFileLinks(doc) {
         
         for (var i = 0 ; i < scriptTags.length ; i++) {
             
-            var link = getRTPPlayLinkFromScriptV3(scriptTags[i].text);
+            var link = getRTPPlayLinkFromScriptV2(scriptTags[i].text);
+            // var link = getRTPPlayLinkFromScriptV3(scriptTags[i].text);
     
             if (link !== undefined) {
                 rtpPlayLinks.push(link);
