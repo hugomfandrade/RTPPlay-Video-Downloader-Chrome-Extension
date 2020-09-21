@@ -48,6 +48,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
     
     // debug('query = ' + isDownloading)
+    debug('query = ' + chrome.extension.getBackgroundPage().dbgIndex);
 
     var tab = tabs[0];
     currentTab = tab; // used in later calls to get tab info

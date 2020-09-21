@@ -207,25 +207,28 @@
 }
 
 /*export const */ function getRTPPlayLinkFromScriptV2(scriptText) {
-    if (scriptText === undefined || 
-        scriptText.length === 0 || 
+    if (scriptText === undefined) return undefined;
+    
+    scriptText = scriptText.replace(/\s+/g, '');
+    
+    if (scriptText.length === 0 || 
         scriptText.indexOf('RTPPlayer({') < 0) {
         return undefined;
     }
     
     var mediaType = scriptText.substr(
-                scriptText.indexOfEx('mediaType: \"'), 
-                scriptText.substr(scriptText.indexOfEx('mediaType: \"')).indexOf('\",'));
+                scriptText.indexOfEx('mediaType:\"'), 
+                scriptText.substr(scriptText.indexOfEx('mediaType:\"')).indexOf('\",'));
     
     var rtpPlayerSubString = scriptText.substring(scriptText.indexOfEx('RTPPlayer({'), scriptText.lastIndexOf('})'));
     
     if (mediaType.indexOf('video') >= 0) {  // is video file
         
-        if (rtpPlayerSubString.indexOf('file : \"') >= 0) {
+        if (rtpPlayerSubString.indexOf('file:\"') >= 0) {
             
             var link = rtpPlayerSubString.substr(
-                rtpPlayerSubString.indexOfEx('file : \"'), 
-                rtpPlayerSubString.substr(rtpPlayerSubString.indexOfEx('file : \"')).indexOf('\",'));
+                rtpPlayerSubString.indexOfEx('file:\"'), 
+                rtpPlayerSubString.substr(rtpPlayerSubString.indexOfEx('file:\"')).indexOf('\",'));
             
             return link;
         }
@@ -233,11 +236,11 @@
     }
     else if (mediaType.indexOf('audio') >= 0) { // is audio file
 
-        if (rtpPlayerSubString.indexOf('file : \"') >= 0) {
+        if (rtpPlayerSubString.indexOf('file:\"') >= 0) {
 
             return rtpPlayerSubString.substr(
-                rtpPlayerSubString.indexOfEx('file : \"'), 
-                rtpPlayerSubString.substr(rtpPlayerSubString.indexOfEx('file : \"')).indexOf('\",'));
+                rtpPlayerSubString.indexOfEx('file:\"'), 
+                rtpPlayerSubString.substr(rtpPlayerSubString.indexOfEx('file:\"')).indexOf('\",'));
             
         }
     }
