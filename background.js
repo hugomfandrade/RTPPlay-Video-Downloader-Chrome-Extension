@@ -36,6 +36,18 @@ chrome.contextMenus.onClicked.addListener(function(info, tab) {
     }
 });
 
+/*chrome.browserAction.onClicked.addListener(function(tab) {
+    if (dbg === true) {
+        chrome.tabs.executeScript(null, {
+            code: 'var debugmessage = ' + '"browserAction.onClicked"' + ';'
+        }, function() {chrome.tabs.executeScript(null, {file: 'debugMessage.js'});});
+    }
+    debug('browserAction.onClicked')
+    chrome.tabs.executeScript(tab.id, {file: "backgroundDatatype.js"});
+    chrome.tabs.executeScript(tab.id, {file: "fetchLinksLib.js"});
+    chrome.tabs.executeScript(tab.id, {file: "fetchLinks.js"});
+});*/
+
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     
     if (request.MessageType === 'isValid') {

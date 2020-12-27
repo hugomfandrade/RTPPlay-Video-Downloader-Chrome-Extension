@@ -34,9 +34,8 @@ function downloadRTPPlayFromDocument(doc, filename) {
 
         for (var i = 0 ; i < rtpPlayFileLinks.length ; i++) {
 
-            var link = rtpPlayFileLinks[i];           
-            
-            var baseLink = link.substr(0, link.lastIndexOf("/")) + "/"
+            var link = rtpPlayFileLinks[i];
+
             // console.log("link = " + link)
             // console.log("baseLink = " + baseLink)
 
@@ -44,49 +43,70 @@ function downloadRTPPlayFromDocument(doc, filename) {
                 // 
                 // 
                 // filename = filename + ".mp4";
-     
-                getFileInUrl(link, function(m3u8, url) {
-                    filename = filename + ".ts";
+        
+                getFileInUrl(link, function(playlist, playlistUrl) {
+
+                    // console.log(playlist);
                     
-                    var lines = m3u8.split('\n');
-                    var tsLinks = []
+                    var lines = playlist.split('\n');
+                    var m3u8Link = null;
                     
                     for (var i = 0; i < lines.length; i++){
                         var line = lines[i];
-                        if (line.endsWith(".ts")) {
-                            tsLinks.push(baseLink + line)
+                        if (m3u8Link == null && line.indexOf(".m3u8") != -1 ) {
+                            m3u8Link = line
                         }
                     }
+            
+                    var baseLink = m3u8Link.substr(0, m3u8Link.lastIndexOf("/")) + "/"
 
-                    // DEBUG
-                    // tsLinks = tsLinks.slice(0, 30)
-                    
-                    var downloadedFiles = 0
-                    var tsFiles = []
-                    var b = new Uint8Array()
-                    for (var i = 0; i < tsLinks.length; i++){
-                        var tsLink = tsLinks[i];
+                    // console.log(m3u8Link);
+        
+                    getFileInUrl(m3u8Link, function(m3u8, url) {
+                        filename = filename + ".ts";
+
+                        // console.log(m3u8);
                         
+                        var lines = m3u8.split('\n');
+                        var tsLinks = []
                         
-                        getTSInUrl(tsLink, function(c, url, i) {
-                            downloadedFiles = downloadedFiles + 1
-                            // console.log("got " + downloadedFiles + "/" + tsLinks.length + " (" + i + ") - " + url)
-    
-                            chrome.runtime.sendMessage({MessageType: 'parsing-progress', Downloaded: downloadedFiles, Total: tsLinks.length}, function(response) { });
-                            
-                            tsFiles.push(c);
-                            
-                            if (downloadedFiles == tsLinks.length) {
-                                // console.log("downloading")
-                                // console.log(tsFiles)
-                                var blob = new Blob(tsFiles, {type: 'video/mp4'});
-                                var url = URL.createObjectURL(blob);
-                                download(url, filename);
+                        for (var i = 0; i < lines.length; i++){
+                            var line = lines[i];
+                            if (line.endsWith(".ts")) {
+                                tsLinks.push(baseLink + line)
                             }
-                        }, i)
-                    }
-                });
+                        }
 
+                        // DEBUG
+                        // tsLinks = tsLinks.slice(0, 30)
+                        
+                        var downloadedFiles = 0
+                        var tsFiles = Array(tsLinks.length)
+                        // var tsFiles = []
+                        var b = new Uint8Array()
+                        for (var i = 0; i < tsLinks.length; i++){
+                            var tsLink = tsLinks[i];
+                            
+                            getTSInUrl(tsLink, function(c, url, i) {
+                                downloadedFiles = downloadedFiles + 1
+                                console.log("got " + downloadedFiles + "/" + tsLinks.length + " (" + i + ") - " + url)
+        
+                                chrome.runtime.sendMessage({MessageType: 'parsing-progress', Downloaded: downloadedFiles, Total: tsLinks.length}, function(response) { });
+                                
+                                tsFiles[i] = c;
+                                // tsFiles.push(c);
+                                
+                                if (downloadedFiles == tsLinks.length) {
+                                    // console.log("downloading")
+                                    // console.log(tsFiles)
+                                    var blob = new Blob(tsFiles, {type: 'video/mp4'});
+                                    var url = URL.createObjectURL(blob);
+                                    download(url, filename);
+                                }
+                            }, i)
+                        }
+                    });
+                });
             }
             else if (link.indexOf('.mp4') >= 0) { // is video file
                 filename = filename + ".mp4";
